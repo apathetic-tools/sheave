@@ -1,3 +1,3 @@
 # CatchUp
-Project briefings for short-term memory.
+Project briefings for short-term memory.  
 *Because context doesn’t persist.*
