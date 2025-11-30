@@ -1,3 +1,3 @@
-# CatchUp
-Project briefings for short-term memory.  
-*Because context doesn’t persist.*
+# Sheave
+AI guidance presets for agentic workflows.  
+*Because tasks shouldn’t get lost in translation.*
