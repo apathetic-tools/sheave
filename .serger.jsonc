@@ -7,7 +7,7 @@
 
   // Display name and description for output header
   "display_name": "Sheave",
-  "description": "AI guidance presets for agentic IDE integrations.",
+  "description": "Presets for guiding agentic AI workflows",
 
   // Repository URL (appears in generated header)
   "repo": "https://github.com/apathetic-tools/sheave",
@@ -20,7 +20,8 @@
   "include": [
     "src/sheave/**/*.py",
     "apathetic_logging/**/*.py",  // Include installed apathetic-logging package
-    "apathetic_utils/**/*.py"  // Include installed apathetic-utils package
+    "apathetic_utils/**/*.py",  // Include installed apathetic-utils package
+    "apathetic_schema/**/*.py"  // Include installed apathetic-schema package
   ],
 
   // Files to exclude from stitching
@@ -30,5 +31,8 @@
     "*.pyc",
     "**/__main__.py"     // Entry point, not stitched
   ],
+
+  // Global configuration defaults
+  "log_level": "warning"
 }
 

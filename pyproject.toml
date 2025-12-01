@@ -3,7 +3,7 @@
 [project]
 name = "sheave"
 version = "0.1.0"
-description = "AI guidance presets for agentic workflows"
+description = "Presets for guiding agentic AI workflows"
 authors = [
     {name = "Apathetic Tools"}
 ]
@@ -48,9 +48,9 @@ lint = ["lint:ruff"]
 
 # 🧠 Type checking
 typecheck = ["typecheck:mypy", "typecheck:pyright"]
-"typecheck:mypy" = "mypy src tests"
+"typecheck:mypy" = "mypy src tests --no-error-summary"
 # run pyright to simulate pylance for AI CLI auto-fix
-"typecheck:pyright" = "pyright src tests"
+"typecheck:pyright" = "bash dev/pyright-quiet.sh src tests"
 
 # 🧪 Tests (runs all three: installed + singlefile + zipapp)
 test = ["test:pytest:installed", "test:pytest:script", "test:pytest:zipapp"]
@@ -127,17 +127,16 @@ test = ["test:pytest:installed", "test:pytest:script", "test:pytest:zipapp"]
 # 🧹 Automated fixing / formatting
 fix = ["sync:ai:guidance", "fix:ruff:installed", "fix:format:installed"]
 "fix:dist" = ["fix:ruff:dist", "fix:format:dist"]
-"fix:ruff:installed" = "ruff check . --fix"
-"fix:ruff:dist" = { shell = "if [ -d dist ]; then ruff check dist --fix; fi" }
-"fix:format:installed" = "ruff format ."
-"fix:format:dist" = { shell = "if [ -d dist ]; then ruff format dist; fi" }
+"fix:ruff:installed" = "ruff check . --fix -q"
+"fix:ruff:dist" = { shell = "if [ -d dist ]; then ruff check dist --fix -q; fi" }
+"fix:format:installed" = "ruff format . -q"
+"fix:format:dist" = { shell = "if [ -d dist ]; then ruff format dist -q; fi" }
 
 # 🧩 Build and license
-"sync:ai:guidance" = "python dev/sync_ai_guidance.py --quiet"
+"sync:ai:guidance" = "python bin/sync_ai_guidance.py --quiet"
 # this creates the singlefile script from the module, it need to use serger not sheave to do that
 "build:script" = "python -m serger"
-"build:zipapp" = "shiv -c sheave -o dist/sheave.pyz ."
-"check:license" = "bash dev/check-license.sh"
+"build:zipapp" = "shiv -c sheave -o dist/sheave.pyz . --quiet"
 
 # 🚀 Release management (semantic-release)
 "release:version" = "semantic-release version --noop"
@@ -145,7 +144,7 @@ fix = ["sync:ai:guidance", "fix:ruff:installed", "fix:format:installed"]
 "release:changelog" = "semantic-release changelog"
 
 # 🔧 Setup and installation
-"pre-commit:install" = { shell = "if [ ! -f .git/hooks/pre-commit ] || ! grep -q 'pre-commit' .git/hooks/pre-commit 2>/dev/null; then poetry run pre-commit install --install-hooks && poetry run pre-commit install --hook-type pre-push; fi" }
+"pre-commit:install" = "bash dev/install_pre_commit_hooks.sh"
 
 # 🐍 Python version management
 "env:py310" = "bash dev/env_use_py310.sh"
@@ -202,6 +201,7 @@ dev = [
     "pyright (>=1.1.407,<2.0.0)",
     "shiv (>=1.0.0,<2.0.0)",
     "python-semantic-release (>=10.0.0,<11.0.0)",
+    "serger (>=0.1.0,<0.2.0)",
 ]
 
 # --- Ruff: formatter and linter ---
@@ -331,7 +331,7 @@ typeCheckingMode = "strict"
 [tool.coverage.run]
 source = ["src"]
 omit = ["*/tests/*", "*/test_*.py"]
-# Enable subprocess coverage tracking (for python -m sheave calls)
+# Enable subprocess coverage tracking (for python -m serger calls)
 concurrency = ["thread", "multiprocessing"]
 sigterm = true
 

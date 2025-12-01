@@ -12,26 +12,23 @@ Switch mode with: RUNTIME_MODE=singlefile pytest or RUNTIME_MODE=zipapp pytest
 import os
 from collections.abc import Generator
 
+import apathetic_utils as mod_apathetic_utils
 import pytest
+from apathetic_logging import makeSafeTrace
 
 import sheave.logs as mod_logs
-from tests.utils import make_test_trace, runtime_swap
-from tests.utils.log_fixtures import (
-    direct_logger,
-    module_logger,
-)
+from tests.utils import BUNDLER_SCRIPT, PROGRAM_PACKAGE, PROGRAM_SCRIPT, PROJ_ROOT
 
 
-# These fixtures are intentionally re-exported so pytest can discover them.
-__all__ = [
-    "direct_logger",
-    "module_logger",
-]
-
-TEST_TRACE = make_test_trace("⚡️")
+TEST_TRACE = makeSafeTrace("⚡️")
 
 # early jank hook
-runtime_swap()
+mod_apathetic_utils.runtime_swap(
+    root=PROJ_ROOT,
+    package_name=PROGRAM_PACKAGE,
+    script_name=PROGRAM_SCRIPT,
+    bundler_script=BUNDLER_SCRIPT,
+)
 
 # ----------------------------------------------------------------------
 # Fixtures

@@ -5,7 +5,7 @@
 [![License: MIT-aNOAI](https://img.shields.io/badge/License-MIT--aNOAI-blueviolet.svg)](LICENSE)
 [![Discord](https://img.shields.io/badge/Discord-%235865F2.svg?logo=discord&logoColor=white)](https://discord.gg/PW6GahZ7)
 
-**AI guidance presets for agentic workflows.**  
+**Presets for guiding agentic AI workflows.**  
 *Because tasks shouldn't get lost in translation.*
 
 📘 **[Roadmap](./ROADMAP.md)** · 📝 **[Release Notes](https://github.com/apathetic-tools/sheave/releases)**
