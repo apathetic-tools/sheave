@@ -1,0 +1,34 @@
+// Sheave's self-hosting configuration
+// This file defines how to stitch sheave itself into a single-file python script
+
+{
+  // Stitching configuration for the main sheave package
+  "package": "sheave",
+
+  // Display name and description for output header
+  "display_name": "Sheave",
+  "description": "AI guidance presets for agentic IDE integrations.",
+
+  // Repository URL (appears in generated header)
+  "repo": "https://github.com/apathetic-tools/sheave",
+
+  // License text for stitched output
+  "license": "License: MIT-aNOAI\nFull text: https://github.com/apathetic-tools/sheave/blob/main/LICENSE",      
+
+  // Source modules to include in the stitch
+  // These are glob patterns relative to the source directory
+  "include": [
+    "src/sheave/**/*.py",
+    "apathetic_logging/**/*.py",  // Include installed apathetic-logging package
+    "apathetic_utils/**/*.py"  // Include installed apathetic-utils package
+  ],
+
+  // Files to exclude from stitching
+  // These are often development-only or auto-generated utilities
+  "exclude": [
+    "__pycache__/**",
+    "*.pyc",
+    "**/__main__.py"     // Entry point, not stitched
+  ],
+}
+
