@@ -133,7 +133,7 @@ fix = ["sync:ai:guidance", "fix:ruff:installed", "fix:format:installed"]
 "fix:format:dist" = { shell = "if [ -d dist ]; then ruff format dist -q; fi" }
 
 # 🧩 Build and license
-"sync:ai:guidance" = "python bin/sync_ai_guidance.py --quiet"
+"sync:ai:guidance" = "python -m sync_ai_guidance --quiet"
 # this creates the singlefile script from the module, it need to use serger not sheave to do that
 "build:script" = "python -m serger"
 "build:zipapp" = "shiv -c sheave -o dist/sheave.pyz . --quiet"
@@ -279,6 +279,14 @@ ignore = [
 "src/**/*.py" = [
   "ICN001", # Allow from imports in src
 ]
+"src/sync_ai_guidance/**/*.py" = [
+  "ICN001", # Allow from imports in src
+  "T201", # print found
+]
+"src/list_project/**/*.py" = [
+  "ICN001", # Allow from imports in src
+  "T201", # print found
+]
 "tests/**/*.py" = [
   "INP001", # missing __init__.py
   "S101", # Use of `assert` detected
@@ -422,8 +430,8 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 package-mode = true
-packages = [{ include = "sheave", from = "src" }]
-include = [
-    { path = "bin/list-project.sh" },
-    { path = "bin/sync_ai_guidance.py" }
+packages = [
+  { include = "sheave", from = "src" },
+  { include = "list_project", from = "src" },
+  { include = "sync_ai_guidance", from = "src" }
 ]
