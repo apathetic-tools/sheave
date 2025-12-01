@@ -14,81 +14,8 @@ For formatting guidelines, see the [DECISIONS.md Style Guide](./DECISIONS_STYLE_
 
 ---
 
-## 🎯 Only support Single-Builds
-<a id="dec15"></a>*DEC 15 — 2025-01-16*
-
-### Context
-
-Sheave inherited multi-build support from pocket-build, where it made sense for orchestrating multiple build tasks. In sheave's context as a focused module stitcher, multi-build support adds significant complexity to the codebase without proportional value. The feature complicates config parsing (requiring 6 different parsing cases), resolution logic (root vs build cascading), output formatting, watch mode coordination, and error handling. This complexity has become a barrier to implementing future features and maintaining code clarity.
-
-### Options Considered
-
-| Option | Pros | Cons |
-|--------|------|------|
-| **Remove multi-build support** | ✅ Simpler codebase (~200+ lines removed)<br>✅ Clearer mental model (one config = one build)<br>✅ Simpler config parsing (6 cases → ~3)<br>✅ Better isolation (failures don't cascade)<br>✅ Standard Unix philosophy (compose via shell)<br>✅ More flexible (parallel builds, different environments) | ❌ Breaking change for existing users<br>❌ Requires multiple commands or wrapper scripts<br>❌ Multiple config files to maintain<br>❌ No shared defaults across builds |
-| **Keep multi-build support** | ✅ Single command execution<br>✅ Cross-platform (no shell scripts needed)<br>✅ Single config file<br>✅ Watch mode for all builds<br>✅ Shared configuration cascading<br>✅ Already implemented | ❌ Complex config parsing (6 cases)<br>❌ Per-build vs global logic throughout codebase<br>❌ Output formatting complexity<br>❌ Watch mode coordination complexity<br>❌ Validation complexity<br>❌ Mental model complexity (root vs build scoping) |
-| **Simplify multi-build (hybrid)** | ✅ Reduces some complexity<br>✅ Keeps convenience feature | ⚠️ Still adds complexity vs single-build<br>⚠️ Partial solution doesn't address root issues |
-
-### Decision
-
-**Remove multi-build support** and require users to run multiple `sheave` commands (or use wrapper scripts) for multiple builds. This aligns with sheave's focus as a single-purpose module stitcher and follows the Unix philosophy of "do one thing well" — composition via shell scripts or task runners is the appropriate solution for orchestration.
-
-The complexity multi-build adds (config parsing cases, cascading logic, watch mode coordination, per-build overrides) outweighs the convenience it provides. Users can achieve the same result with simple shell scripts, Makefiles, or task runners, which are standard tools in Python development workflows.
-
-<br/><br/>
-
----
-
----
-
-<br/><br/>
-
-## 🚀 Aggressively Allow Defaults and Auto-Detection for Zero-Config Usage
-<a id="dec14"></a>*DEC 14 — 2025-11-16*
-
-### Context
-
-Sheave should "just work" when someone downloads it and runs it without any configuration files or CLI arguments. The goal is to enable a seamless, **zero-configuration experience** where users can immediately generate a stitched script from their Python package without needing to understand Sheave's configuration system or provide explicit paths, package names, or output locations.
-
-When configuration is necessary, it should require the **least config possible** — only specifying what differs from sensible defaults, not re-stating everything explicitly.
-
-### Options Considered
-
-| Option | Pros | Cons |
-|--------|------|------|
-| **Aggressive defaults and auto-detection** | ✅ Zero-configuration experience<br>✅ Lower barrier to entry<br>✅ Works immediately after installation<br>✅ Encourages exploration and adoption | ⚠️ May produce unexpected output if assumptions are wrong<br>⚠️ Less explicit control for advanced users |
-| **Require explicit configuration** | ✅ Clear, explicit behavior<br>✅ No ambiguity about what will happen<br>✅ Forces users to understand the tool | ❌ High barrier to entry<br>❌ Requires learning configuration format before first use<br>❌ Slower initial adoption |
-| **Minimal defaults with warnings** | ✅ Safe defaults<br>✅ Warns users about assumptions | ⚠️ Still requires user interaction<br>⚠️ Interrupts the "just works" experience |
-
-### Decision
-
-**Aggressively allow defaults and auto-detection** to enable **zero-configuration usage** and **minimal configuration** when needed. When no config file or CLI arguments are provided, Sheave should:
-
-- **Auto-detect packages** from the project structure (scanning `src/` and other common directories)
-- **Auto-detect source files** using sensible defaults (e.g., `src/**/*.py`)
-- **Use safe default output paths** — specifically, `dist/<package>.py` is considered a safe default output location
-- **Auto-detect package names** from directory structure or `pyproject.toml`
-- **Apply sensible defaults** for all configuration options (stitch mode, import handling, post-processing, etc.)
-
-The output path `dist/<package>.py` is considered safe because:
-- The `dist/` directory is a standard Python convention for distribution artifacts
-- It's unlikely to conflict with source code
-- It's a clear, predictable location that users can easily find and understand
-- It aligns with common Python packaging workflows
-
-This approach prioritizes **immediate usability** over **explicit control**. When configuration is needed, users should only specify what differs from defaults — the **least config possible**. Advanced users can always override defaults with configuration files or CLI arguments, but new users should be able to run Sheave and get useful output immediately, and users who need customization should only need to configure what's different.
-
-
-<br/><br/>
-
----
-
----
-
-<br/><br/>
-
 ## 🔧 Choose Post-Processing Tools: Ruff, Black, and isort
-<a id="dec13"></a>*DEC 13 — 2025-11-11*
+<a id="dec12"></a>*DEC 12 — 2025-11-11*
 
 ### Context
 
@@ -119,34 +46,6 @@ The three categories (`static_checker`, `formatter`, `import_sorter`) run in ord
 
 ---
 
----
-
-<br/><br/>
-
-## 📄 Only Support `pyproject.toml` for Project Metadata
-<a id="dec12"></a>*DEC 12 — 2025-11-11*
-
-### Context
-
-Sheave needs to extract project metadata (name, version, description, license) for embedding in stitched scripts. Historically, Python projects used `setup.py` and `setup.cfg` for this information, but modern Python packaging has standardized on `pyproject.toml` (PEP 621).
-
-### Options Considered
-
-| Option | Pros | Cons |
-|--------|------|------|
-| **Only `pyproject.toml`** | ✅ Modern standard (PEP 621)<br>✅ Single source of truth<br>✅ Widely adopted<br>✅ Simpler implementation | ⚠️ Doesn't support legacy projects |
-| **Support `setup.py` and `setup.cfg`** | ✅ Backward compatible with older projects | ❌ Legacy formats being phased out<br>❌ More complex parsing logic<br>❌ Multiple sources of truth |
-| **Support all formats** | ✅ Maximum compatibility | ❌ Significant implementation complexity<br>❌ Maintenance burden<br>❌ Conflicts when multiple formats exist |
-
-### Decision
-
-**Only support `pyproject.toml`** for extracting project metadata.
-
-This aligns with modern Python packaging standards and keeps the implementation focused. Projects using legacy formats can migrate to `pyproject.toml` or manually specify metadata in their Sheave config.
-
-<br/><br/>
-
----
 ---
 
 <br/><br/>
@@ -417,12 +316,12 @@ This version is lightly customized with local contact details and references to 
 
 
 ## 🧭 Target `Python` Version `3.10`
-<a id="dec04"></a>*DEC 04 — 2025-10-10*  
+<a id="dec04"></a>*DEC 04 — 2025-10-10*
 
 
 ### Context
 
-Following the choice of Python *(see [DEC 03](#dec03))*, this project must define a minimum supported version balancing modern features, CI stability, and broad usability.  
+Following the choice of Python *(see [DEC 03](#dec03))*, this project must define a minimum supported version balancing modern features, CI stability, and broad usability.
 The goal is to stay current without excluding common environments.
 
 ### Options Considered

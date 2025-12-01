@@ -423,3 +423,7 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry]
 package-mode = true
 packages = [{ include = "sheave", from = "src" }]
+include = [
+    { path = "bin/list-project.sh" },
+    { path = "bin/sync_ai_guidance.py" }
+]
