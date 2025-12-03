@@ -194,7 +194,21 @@ def test_pytest_runtime_cache_integrity() -> None:  # noqa: PLR0912
     # --- verify both ---
     important_modules = list_important_modules()
     for submodule in important_modules:
-        mod = importlib.import_module(f"{submodule}")
+        try:
+            mod = importlib.import_module(f"{submodule}")
+        except SystemExit as e:
+            # If __main__.py calls sys.exit() at module level (without __name__ guard),
+            # it will raise SystemExit when imported. This is a common mistake.
+            if submodule.endswith(".__main__"):
+                msg = (
+                    f"Importing {submodule} raised SystemExit. "
+                    f"This usually means {submodule.replace('.', '/')}.py calls "
+                    "sys.exit() at module level without the "
+                    "'if __name__ == \"__main__\":' guard. "
+                    'Fix by wrapping sys.exit() calls in: if __name__ == "__main__":'
+                )
+                raise AssertionError(msg) from e
+            raise
         path = Path(inspect.getsourcefile(mod) or "")
         if mode == "singlefile":
             assert path.samefile(expected_script), f"{submodule} loaded from {path}"
