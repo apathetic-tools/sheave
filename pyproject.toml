@@ -2,7 +2,7 @@
 
 [project]
 name = "sheave"
-version = "0.1.0"
+version = "0.2.0"
 description = "Presets for guiding agentic AI workflows"
 authors = [
     {name = "Apathetic Tools"}
