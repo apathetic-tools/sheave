@@ -2,6 +2,19 @@
 
 <!-- version list -->
 
+## v0.3.0 (2025-12-03)
+
+### Features
+
+- Update project metadata and classifiers
+  ([`892cfcc`](https://github.com/apathetic-tools/sheave/commit/892cfcc1e965e73ec563e04d0708d4505c9a0ffd))
+
+### Refactoring
+
+- Use cwd instead of __file__ for project root
+  ([`cbab414`](https://github.com/apathetic-tools/sheave/commit/cbab4144ba42c2887e104ef603097a4449e6ace4))
+
+
 ## v0.2.0 (2025-12-03)
 
 ### Build System
