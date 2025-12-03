@@ -282,10 +282,8 @@ def main() -> None:
     args = parser.parse_args()
     quiet = args.quiet
 
-    # When run as a module (python -m sync_ai_guidance), __file__ is at
-    # src/sync_ai_guidance/sync_ai_guidance.py, so we need to go up 3 levels
-    # to get to the project root
-    project_root = Path(__file__).resolve().parent.parent.parent
+    # Use current working directory as project root
+    project_root = Path.cwd()
     ai_rules_dir = project_root / ".ai" / "rules"
     ai_commands_dir = project_root / ".ai" / "commands"
     cursor_rules_dir = project_root / ".cursor" / "rules"

@@ -74,16 +74,8 @@ def format_path(path: Path, root_dir: Path) -> str:
 
 def main() -> None:
     """Main entry point for the list_project command."""
-    # Get root directory (parent of src directory, or current directory)
-    script_dir = Path(__file__).parent
-    # If we're in src/list_project, go up two levels to get project root
-    if script_dir.name == "list_project" and script_dir.parent.name == "src":
-        root_dir = script_dir.parent.parent
-    else:
-        # Fallback: use current working directory
-        root_dir = Path.cwd()
-
-    root_dir = root_dir.resolve()
+    # Use current working directory as project root
+    root_dir = Path.cwd().resolve()
 
     # Header
     print(f"📦 Project structure under: {root_dir}")
