@@ -258,3 +258,5 @@ sheave sync --ide cursor claude
 - Check out [Examples](/sheave/examples) for usage patterns
 - Read the [API Documentation](/sheave/api) for programmatic usage
 
+
+
