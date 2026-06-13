@@ -22,23 +22,22 @@ Some of these we just want to consider, and may not want to implement.
   
 
 ### Phase 1: Foundation (v0.1.0)
-- [ ] Configuration system with TOML support
-  - [ ] Load configuration from `.sheave.toml`
-  - [ ] Load configuration from `pyproject.toml` `[tool.sheave]` section
-  - [ ] Support `select`, `ignore`, `extend-select` options
-  - [ ] Configuration validation
-- [ ] Preset discovery and loading
-  - [ ] Built-in preset registry
-  - [ ] Load presets from default directories
-  - [ ] Support custom preset paths
-  - [ ] Preset metadata (id, name, category, description)
-- [ ] Basic CLI commands
-  - [ ] `sheave init` — Initialize configuration
-  - [ ] `sheave list` — List available presets
-  - [ ] `sheave enable` — Enable presets
-  - [ ] `sheave disable` — Disable presets
-  - [ ] `sheave show` — Show current configuration
-  - [ ] `sheave check` — Validate configuration
+- [x] Configuration system with TOML support
+  - [x] Load configuration from `.sheave.toml`
+  - [x] Support `select`, `ignore`, `extend-select` options
+  - [x] Configuration validation
+- [x] Preset discovery and loading
+  - [x] Built-in preset registry
+  - [x] Load presets from default directories
+  - [x] Support custom preset paths
+  - [x] Preset metadata (id, name, category, description)
+- [x] Basic CLI commands
+  - [x] `sheave init` — Initialize configuration
+  - [x] `sheave list` — List available presets
+  - [x] `sheave enable` — Enable presets
+  - [x] `sheave disable` — Disable presets
+  - [x] `sheave show` — Show current configuration
+  - [x] `sheave check` — Validate configuration
 
 ### Phase 2: IDE Integration (v0.2.0)
 - [ ] IDE sync functionality (`sheave sync` replacing `sync_ai_guidance.py`)
@@ -304,6 +303,11 @@ Some of these we just want to consider, and may not want to implement.
 - [ ] Documentation coverage
 
 > See [REJECTED.md](REJECTED.md) for experiments and ideas that were explored but intentionally not pursued.
+
+## Future Considerations
+- [ ] Language-Specific Global Configs
+  - [ ] `pyproject.toml` `[tool.sheave]` section for Python projects
+  - [ ] `package.json` `"sheave"` field for Node projects
 
 ---
 

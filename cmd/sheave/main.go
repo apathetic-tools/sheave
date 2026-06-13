@@ -1,22 +1,21 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"os"
+
+	"github.com/spf13/cobra"
 )
 
+var rootCmd = &cobra.Command{
+	Use:     "sheave",
+	Short:   "Sheave provides AI guidance presets for agentic IDE integrations",
+	Version: "0.2.0",
+}
+
 func main() {
-	// Define the base flags
-	versionFlag := flag.Bool("version", false, "Print version information")
-
-	// Parse the command line arguments
-	flag.Parse()
-
-	if *versionFlag {
-		fmt.Println("sheave version 0.2.0")
-		os.Exit(0)
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
 	}
-
-	fmt.Println("Hello world")
 }
