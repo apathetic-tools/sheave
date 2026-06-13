@@ -10,11 +10,11 @@ updates:
       default-days: 7
     # Keeps actions like actions/checkout, actions/setup-python up to date
 
-  # Monitor Python dependencies in pyproject.toml
-  - package-ecosystem: "pip"
+  # Monitor Go dependencies in go.mod
+  - package-ecosystem: "gomod"
     directory: "/"
     schedule:
       interval: "weekly"
     cooldown:
       default-days: 7
-    # Monitors dev dependencies: ruff, mypy, pytest, etc.
+    # Monitors dependencies: cobra, go-toml, etc.
