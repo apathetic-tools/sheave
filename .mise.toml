@@ -1,0 +1,9 @@
+# Optional: For mise users - automatically activates tool versions when entering this directory
+# System tools are preferred; mise is only used as a fallback if system tools aren't available
+
+[tools]
+# Project uses go as the primary language.
+go = "1.26.4"
+
+# Ruby: Used for Jekyll documentation site (docs/)
+ruby = "3.3.0"

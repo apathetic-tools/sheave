@@ -11,6 +11,10 @@ description: Presets for guiding agentic AI workflows.
 
 Sheave provides a curated collection of AI guidance presets that you can selectively enable for your IDE integrations. Similar to how ruff lets you choose which linting rules to enable, Sheave lets you pick and choose which rules, workflows, and commands to activate.
 
+> [!NOTE]
+> This project is largely AI-written and minimally polished. I rely on it, but I haven't reviewed every detail.
+> Expect rough edges. Thoughtful issue reports are appreciated.
+
 ## Quick Start
 
 Install Sheave:

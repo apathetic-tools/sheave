@@ -10,20 +10,16 @@ repos:
         stages: [commit-msg]
         pass_filenames: true
 
-      # Run fixers automatically before each commit
-      - id: poe-fix
-        name: Run Poe 'fix'
-        entry: |
-          bash -c 'export PATH="$HOME/.local/bin:$PATH"; poetry run poe fix'
+      - id: go-fmt
+        name: go fmt
+        entry: bash -c 'mise exec -- go fmt ./...'
         language: system
         pass_filenames: false
         stages: [pre-commit]
 
-      # Run checks (no auto-fixing) before pushing
-      - id: poe-check
-        name: Run Poe 'check'
-        entry: |
-          bash -c 'export PATH="$HOME/.local/bin:$PATH"; poetry run poe check'
+      - id: go-test
+        name: go test
+        entry: bash -c 'mise exec -- go test ./...'
         language: system
         pass_filenames: false
         stages: [pre-push]

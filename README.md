@@ -11,7 +11,8 @@
 📘 **[Roadmap](./ROADMAP.md)** · 📝 **[Release Notes](https://github.com/apathetic-tools/sheave/releases)**
 
 > [!NOTE]
-> Heads up: the AI cooked dinner. It's edible, but watch your step. Detailed bug reports welcome.
+> This project is largely AI-written and minimally polished. I rely on it, but I haven't reviewed every detail.
+> Expect rough edges. Thoughtful issue reports are appreciated.
 
 ## 🚀 Quick Start
 

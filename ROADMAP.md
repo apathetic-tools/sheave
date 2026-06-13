@@ -12,6 +12,14 @@
 Some of these we just want to consider, and may not want to implement.
 
 ## 🎯 Core Features
+- rename to 
+  - Clap "AI encouragement in the right direction"
+  - applause
+  - pulley
+  - praise
+  - mentat
+  - other words of encouragement
+  
 
 ### Phase 1: Foundation (v0.1.0)
 - [ ] Configuration system with TOML support
@@ -33,11 +41,13 @@ Some of these we just want to consider, and may not want to implement.
   - [ ] `sheave check` — Validate configuration
 
 ### Phase 2: IDE Integration (v0.2.0)
-- [ ] IDE sync functionality
-  - [ ] Sync to Cursor (`.cursor/rules/`, `.cursor/commands/`)
-  - [ ] Sync to Claude Desktop (`.claude/`)
-  - [ ] Sync to generic AI integrations (`.ai/rules/`, `.ai/commands/`)
-  - [ ] `sheave sync` command
+- [ ] IDE sync functionality (`sheave sync` replacing `sync_ai_guidance.py`)
+  - [ ] Chunk 1: Directory scaffolding (ensure `.ai/`, `.cursor/`, `.claude/` structure)
+  - [ ] Chunk 2: Base Cursor rules sync (copy `.ai/rules/*.mdc` to `.cursor/rules/`)
+  - [ ] Chunk 3: Specific Cursor rules sync (copy `.ai/rules/cursor/*.mdc`)
+  - [ ] Chunk 4: Cursor commands sync (copy `.ai/commands/*.md` to `.cursor/commands/`)
+  - [ ] Chunk 5: Cursor cleanup (remove obsolete rules/commands)
+  - [ ] Chunk 6: Claude compilation (stitch `.mdc` bodies + `.ai/rules/claude/*.md` into `CLAUDE.md`)
   - [ ] Dry-run mode
   - [ ] IDE-specific configuration
 - [ ] Preset content generation

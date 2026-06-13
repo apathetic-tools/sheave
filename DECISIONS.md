@@ -14,81 +14,26 @@ For formatting guidelines, see the [DECISIONS.md Style Guide](./DECISIONS_STYLE_
 
 ---
 
-## 🔧 Choose Post-Processing Tools: Ruff, Black, and isort
-<a id="dec12"></a>*DEC 12 — 2025-11-11*
+## 🐹 Switch from Python to Go
+<a id="dec13"></a>*DEC 13 — 2026-06-13*
 
 ### Context
 
-After stitching source files into a single script, Sheave needs to ensure the output meets quality standards — static checking, formatting, and import organization. The tool should support a flexible, priority-based system where users can configure which tools run in which order, with fallbacks when preferred tools aren't available.
+Sheave was originally written in Python (see [DEC 03](#dec03)). However, as a CLI tool that needs to be distributed to end users (who may be working in Rust, Node, or other ecosystems), Python's distribution model became a significant liability. Asking users to install Python, manage virtual environments, and deal with `pip` just to run a CLI tool introduces too much friction. Python compilation tools (like PyInstaller) often yield bloated binaries with slow startup times.
 
 ### Options Considered
 
-| Option | Pros | Cons |
-|--------|------|------|
-| **Ruff only** | ✅ Single tool for all categories<br>✅ Extremely fast<br>✅ Unified configuration | ⚠️ Less flexibility for teams with existing tool preferences<br>⚠️ Newer tool, some teams prefer established alternatives |
-| **Ruff + Black + isort** | ✅ Ruff as primary (fast, modern)<br>✅ Black as formatting fallback (widely adopted)<br>✅ isort as import fallback (mature, configurable)<br>✅ Supports teams with existing toolchains | ⚠️ Multiple tools to potentially install<br>⚠️ Slight configuration complexity |
-| **Black + isort only** | ✅ Established, widely-used tools<br>✅ No newer dependencies | ❌ Slower than Ruff<br>❌ Two separate tools instead of one unified solution |
-| **No post-processing** | ✅ Simplest implementation<br>✅ No external dependencies | ❌ Users must manually format/check output<br>❌ Inconsistent output quality |
+| Language | Pros | Cons |
+|-----------|------|------|
+| **Python (Status Quo)** | ✅ Fast development<br>✅ Familiarity | ❌ Terrible distribution story<br>❌ Slow CLI startup if bundled |
+| **Rust** | ✅ Single binary<br>✅ Fast execution | ❌ Slower compilation<br>❌ Steeper learning curve |
+| **Go** | ✅ Statically linked single binary<br>✅ Instant startup time<br>✅ Trivial cross-compilation<br>✅ Excellent CLI ecosystem (Cobra, Charm) | ⚠️ Requires rewriting existing Python logic |
 
 ### Decision
 
-Support **Ruff as the primary tool** for all three categories (static checking, formatting, and import sorting), with **Black** and **isort** as fallback options.
+Migrate the entire codebase from **Python to Go**.
 
-The default configuration prioritizes Ruff for its speed and unified approach, but allows teams with existing Black or isort workflows to use those tools instead. This provides:
-
-- **Fast defaults** — Ruff handles all three categories efficiently
-- **Flexibility** — Users can override priorities to match their existing toolchains
-- **Graceful degradation** — If Ruff isn't available, Black and isort can step in
-
-The three categories (`static_checker`, `formatter`, `import_sorter`) run in order, and within each category, tools are tried in priority order until one succeeds. This ensures consistent output while respecting user preferences and tool availability.
-
-<br/><br/>
-
----
-
----
-
-<br/><br/>
-
-## 🪵 Adopt Standard Library `logging`
-<a id="dec11"></a>*DEC 11 — 2025-10-15 → revised 2025-10-31*  
-
-### Context  
-
-Early in development, the project required a **consistent and colorized logging system** that worked seamlessly in both modular and single-file builds.  
-At the time, the built-in Python `logging` module seemed overkill for such a small utility — especially since the tool needed lightweight log-level control and minimal setup.  
-We initially built a **custom logger** to provide:  
-
-- Compact, dependency-free logging.  
-- Inline color formatting for terminals.  
-- Simpler test injection and patching for trace output.  
-
-This approach fit the project's early ethos of *“small, inspectable, and standalone.”*  
-
-### Options Considered  
-
-| Option | Pros | Cons |
-|--------|------|------|
-| **Custom lightweight logger** | ✅ Fully under our control<br>✅ Compact and easily embedded<br>✅ Works identically in single-file builds | ⚠️ Duplicates standard functionality<br>⚠️ Harder to test and mock<br>⚠️ Configuration drift between modules |
-| **Standard Library `logging`** | ✅ Mature and battle-tested<br>✅ Configurable handlers, filters, and levels<br>✅ Works natively with external libraries<br>✅ Simple integration with pytest and CLI flags | ⚠️ Significantly more verbose setup for color and formatting |
-| **Third-party libraries (e.g. `loguru`, `rich.logging`)** | ✅ Rich formatting and features out-of-the-box | ❌ Adds runtime dependencies<br>❌ Conflicts with minimalism goal |
-
-### Decision — *2025-10-15*  
-
-Implement a **custom, lightweight logger** tailored for the project.  
-It would provide clear output, colorized levels, and simple hooks for tracing (`TRACE`) without bringing in external dependencies or complex handler hierarchies.  
-This custom module fit our goals of **portability** and **transparency**, keeping the tool’s behavior explicit and easy to inspect.  
-
-### Follow-up and Evolution (*2025-10-31*)
-
-As the codebase grew, the in-house logger **expanded significantly** — gaining configuration flags, test-time injection, and shims for different runtime modes.  
-It became increasingly **difficult to test, maintain, and integrate** with third-party tooling.  
-
-We also realized (belatedly) that the **standard `logging` module already supports** most of what we built manually — including level control, handler injection, and structured message formatting — all without external dependencies.  
-
-The custom logger was therefore deprecated and removed, and the project migrated fully to **Python’s built-in `logging`** system.  
-
-
+Go compiles down to a single, dependency-free binary that can be trivially distributed across all major operating systems. This provides the ultimate "download and run" experience for end users, which is the gold standard for modern CLI tools. The rewrite is justified by the massive improvement in the distribution and installation story.
 
 <br/><br/>
 
@@ -96,190 +41,6 @@ The custom logger was therefore deprecated and removed, and the project migrated
 ---
 
 <br/><br/>
-
-## ⚙️ Adopt a Three-Tier Distribution Strategy
-<a id="dec10"></a>*DEC 10 — 2025-10-11*  
-
-### Context 
-
-As the early ad-hoc merger script evolved into a tested module, we want to ensure the project remains easy to distribute in forms that best suits different users.  
-
-### Options Considered
-
-| Option | Pros | Cons | Tools
-|--------|------|------|------|
-| **PyPI module (default)** | ✅ Easy to maintain and install<br>✅ Supports imports and APIs | ❌ Requires installation and internet | [`poetry`](https://python-poetry.org/), [`pip`](https://pypi.org/project/pip/) |
-| **Single-file script** | ✅ No install step<br>✅ Human-readable source<br>✅ Ideal for quick CLI use | ❌ Not importable<br>❌ Harder to maintain merger logic | [`sheave`](https://github.com/apathetic-tools/sheave) |
-| **Zipped module (`.pyz`)** | ✅ Bundled, portable archive<br>✅ Maintains import semantics | ⚠️ Requires unzip for source<br>⚠️ Slight startup overhead | [`zipapp`](https://docs.python.org/3/library/zipapp.html), [`shiv`](https://pypi.org/project/shiv/), [`pex`](https://pypi.org/project/pex/) |
-| **Executable bundlers** | ✅ Fully portable binaries<br>✅ No Python install required | ❌ Platform-specific<br>❌ Not source-transparent  | [`PyInstaller`](https://pyinstaller.org/en/stable/), [`shiv`](https://pypi.org/project/shiv/), [`pex`](https://pypi.org/project/pex/) |
-
-
----
-
-### Decision
-
-Adopt a **three-tier distribution model**:  
-
-1. **PyPI package** — the canonical importable module with semantic versioning guarantees.  
-2. **Single-file script** — a CLI build based on `ast` import parsing.  
-3. **Zipped module (`.pyz`)** — optional for future releases and easy to produce.  
-
-Each tier serves different users while sharing the same tested, modular codebase.  
-
-This does not rule out an executable bundle in the future.
-
-
-<br/><br/>
-
----
----
-
-<br/><br/>
-
-
-## 🧪 Adopt `Pytest` for Testing  
-<a id="dec09"></a>*DEC 09 — 2025-10-10*  
-
-### Context
-
-The project required a lightweight, expressive testing framework compatible with modern Python and CI environments.  
-Testing should be easy to write, discover, and extend — without verbose boilerplate or heavy configuration.  
-The priority was to keep tests readable while supporting fixtures, parametrization, and integration with tools like coverage and tox.
-
-### Options Considered
-
-| Tool | Pros | Cons |
-|------|------|------|
-| **[`Pytest`](https://docs.pytest.org/)** | ✅ Simple test discovery (`test_*.py`)<br>✅ Rich fixtures and parametrization<br>✅ Integrates with CI and coverage tools<br>✅ Large ecosystem and community | ⚠️ Implicit magic can obscure behavior for beginners |
-| **`unittest` (stdlib)** | ✅ Built into Python<br>✅ Familiar xUnit style | ❌ Verbose boilerplate<br>❌ Weak fixture system<br>❌ Slower iteration and less readable output |
-
-
-### Decision
-
-Adopt **Pytest** as the primary testing framework.  
-It provides clean syntax, automatic discovery, and a thriving ecosystem — making it ideal for both quick unit tests and full integration suites.  
-Pytest’s concise, declarative style aligns with the project’s principle of *clarity over ceremony*, enabling contributors to write and run tests effortlessly across all supported Python versions.
-
-
-<br/><br/>
-
----
----
-
-<br/><br/>
-
-
-## 🔍 Adopt `Pylance` and `MyPy` for Type Checking  
-<a id="dec08"></a>*DEC 08 — 2025-10-10*  
-
-### Context
-
-Static typing improves maintainability and clarity across the codebase, but Python’s ecosystem offers multiple overlapping tools.  
-The goal was to balance **developer ergonomics** in VS Code with **strict, automated checks** in CI.  
-We wanted instant feedback during development and deeper, slower analysis during builds — without fragmenting the configuration.
-
-### Options Considered
-
-| Tool | Pros | Cons |
-|------|------|------|
-| **[`Pylance`](https://github.com/microsoft/pylance-release)** | ✅ Deep integration with VS Code<br>✅ Fast, incremental type checking<br>✅ Excellent in-editor inference and documentation<br>✅ Minimal configuration (uses `pyrightconfig.json` or `pyproject.toml`) | ❌ IDE-only — cannot run in CI<br>❌ Limited control over advanced typing rules |
-| **[`Pyright`](https://github.com/microsoft/pyright)** | ✅ CLI equivalent of Pylance<br>✅ Fast and scriptable for CI | ⚠️ Less flexible than MyPy for complex type logic |
-| **[`MyPy`](https://github.com/python/mypy)** | ✅ Mature, standards-based type checker<br>✅ Detects deeper type inconsistencies<br>✅ Integrates easily into CI workflows | ⚠️ Slower than Pyright<br>⚠️ Sometimes stricter or inconsistent with Pylance behavior |
-| **No static checking** | ✅ Simplifies setup | ❌ No type enforcement; increased maintenance burden |
-
-### Decision
-
-Adopt **Pylance** as the default IDE type checker for developers using VS Code, and **MyPy** as the canonical CI type checker.  
-Pylance offers immediate, contextual feedback during development through its deep VS Code integration, while MyPy provides comprehensive type analysis in automated checks.  
-
-This dual setup ensures fast iteration locally and rigorous verification in CI — complementing Ruff’s linting and formatting without overlapping responsibilities.
-
-### Future Consideration
-
-Future builds may experiment with **`pyright` CLI** to align IDE and CI checks under a single configuration, but for now, **Pylance in the editor** and **MyPy in CI** provide the best balance of speed, coverage, and reliability.
-
-
-<br/><br/>
-
----
----
-
-<br/><br/>
-
-
-## 🪶 Adopt `editorconfig` and `Ruff` for Linting and Formatting  
-<a id="dec07"></a>*DEC 07 — 2025-10-10 → revised 2025-10-30*  
-
-### Context
-
-The project needed a **consistent, automated style and linting toolchain** to enforce quality without slowing down iteration.  
-Python’s ecosystem offers several specialized tools (`black`, `isort`, `flake8`, `mypy`, etc.), but managing them separately increases setup friction and configuration sprawl.  
-The goal was to find a **fast, unified tool** that covers linting, formatting, and import management from a single configuration.
-
-
-### Options Considered
-
-| Tool | Pros | Cons |
-|------|------|------|
-| **[`Ruff`](https://github.com/astral-sh/ruff)** | ✅ Extremely fast (Rust-based)<br>✅ Replaces multiple tools (lint, format, import sort)<br>✅ Single configuration in `pyproject.toml`<br>✅ Compatible with Black-style formatting | ⚠️ Still evolving rapidly |
-| **[`Black`](https://github.com/psf/black)** | ✅ Widely adopted<br>✅ Consistent formatting standard | ❌ Format-only — requires separate tools for linting and imports |
-| **[`isort`](https://pycqa.github.io/isort/)** | ✅ Excellent import sorter<br>✅ Highly configurable | ❌ Separate config and step<br>❌ Slower and redundant when used with Ruff |
-| **[`.editorconfig`](https://editorconfig.org/)** | ✅ Supported by most editors<br>✅ Defines consistent indentation, EOLs, and encoding<br>✅ Works across languages | ❌ Limited to basic formatting rules |
-
-### Decision
-
-Adopt **Ruff** as the unified linting and formatting tool, complemented by **EditorConfig** for cross-editor baseline consistency.
-Ruff’s **speed**, **all-in-one scope**, and **`pyproject.toml` integration** reduce the need for multiple Python-specific tools, while EditorConfig ensures **consistent indentation, encoding, and newline behavior** in any environment.  
-
-Together, they provide a lightweight, editor-agnostic foundation that enforces uniform style without excess configuration — aligning with the project’s “minimal moving parts” principle.
-
-### Follow-up and Evolution (2025-10-11 → 2025-10-30)
-
-For a brief period, **isort** was integrated alongside Ruff to handle complex import merging, as the team was unaware that Ruff’s configuration already supported equivalent sorting behavior.  
-After confirming Ruff’s import management features, **isort was removed**, consolidating all style and linting functions under Ruff alone.
-
-
-
-<br/><br/>
-
----
----
-
-<br/><br/>
-
-
-## 📦 Choose `Poetry` for Dependency and Environment Management  
-<a id="dec06"></a>*DEC 06 — 2025-10-10*  
-
-### Context
-
-The project needs a **single-source, reproducible setup** covering dependency management, packaging, and development workflows.  
-The goal is to reduce moving parts — **one configuration, one lockfile, one entrypoint.**
-
-### Options Considered
-
-| Tool | Pros | Cons |
-|------|------|------|
-| **[`Poetry`](https://python-poetry.org/)** | ✅ Unified `pyproject.toml` for dependencies and metadata<br>✅ Built-in lockfile for reproducible builds<br>✅ Manages virtual environments automatically<br>✅ Extensible with plugins (e.g. [`poethepoet`](https://github.com/nat-n/poethepoet)) for task automation | ⚠️ Slightly heavier CLI<br>⚠️ Requires learning its workflow |
-| **`pip` + `requirements.txt`** | ✅ Ubiquitous and simple<br>✅ Works with system Python or virtualenv | ❌ No lockfile by default<br>❌ Fragmented setup (requires separate tools for packaging and scripts)<br>❌ Harder to track metadata and extras |
-| **`pip-tools`** | ✅ Adds lockfile support to `pip` | ⚠️ Partial overlap; still requires setup scripts |
-| **Manual `venv` + Makefile** | ✅ Transparent and minimal | ❌ Scattered configuration<br>❌ Manual sync and version drift |
-
-### Decision
-
-Adopt **Poetry** as the project’s canonical environment and dependency manager.  
-It provides a **batteries-included workflow** — unified configuration (`pyproject.toml`), reproducible installs (`poetry.lock`), isolated environments, and task automation via the `poethepoet` plugin instead of maintaining Makefiles.  
-
-This mirrors the **familiar ergonomics of `package.json` + `pnpm`** for developers coming from JavaScript ecosystems while preserving full Python portability.
-
-
-<br/><br/>
-
----
----
-
-<br/><br/>
-
 
 ## 🤝 Adopt `Contributor Covenant 3.0` as Code of Conduct  
 <a id="dec05"></a>*DEC 05 — 2025-10-10*  
@@ -306,7 +67,6 @@ It defines reporting, enforcement, and repair processes clearly, reinforcing the
 
 This version is lightly customized with local contact details and references to community moderation procedures, maintaining alignment with upstream guidance.
 
-
 <br/><br/>
 
 ---
@@ -314,65 +74,10 @@ This version is lightly customized with local contact details and references to 
 
 <br/><br/>
 
-
-## 🧭 Target `Python` Version `3.10`
-<a id="dec04"></a>*DEC 04 — 2025-10-10*
-
-
-### Context
-
-Following the choice of Python *(see [DEC 03](#dec03))*, this project must define a minimum supported version balancing modern features, CI stability, and broad usability.
-The goal is to stay current without excluding common environments.
-
-### Options Considered
-
-The latest Python version is *3.14*.
-
-| Version | Pros | Cons |
-|---------|------|------|
-| **3.8+** | ✅ Works on older systems | ❌ Lacks modern typing (`\|`, `match`, `typing.Self`) and adds maintenance overhead |
-| **3.10+**  | ✅ Matches Ubuntu 22.04 LTS (baseline CI)<br>✅ Includes modern syntax and typing features | ⚠️ Slightly narrower audience but covers all active LTS platforms
-| **3.12+** | ✅ Latest stdlib and type system | ❌ Too new; excludes many CI and production environments |
-
-### Platform Baselines
-Windows WSL typically runs Ubuntu 22.04 or 24.04 LTS.
-
-| Platform | Default Python | Notes |
-|-----------|----------------|-------|
-| Ubuntu 22.04 LTS | 3.10 | Minimum baseline |
-| Ubuntu 24.04 LTS | 3.12 | Current CI default |
-| macOS / Windows | 3.12 | User-installed or Store LTS |
-| GitHub Actions `ubuntu-latest` | 3.10 → 3.12 | Transition period coverage |
-
-### Python Versions
-
-| Version | Status | Released | EOL |
-|---------|--------|----------|-----|
-| 3.14 | bugfix | 2025-10 | 2030-10 |
-| 3.13 | bugfix | 2024-10 | 2029-10 |
-| 3.12 | security | 2023-10 | 2028-10 |
-| 3.11 | security | 2022-10 | 2027-10 |
-| **3.10** | security | 2021-10 | 2026-10 |
-| 3.9 | security | 2020-10 | 2025-10 |
-| 3.8 | end of life | 2019-10-14 | 2024-10-07 |
-
-### Decision
-
-Target **Python 3.10 and newer** as the supported baseline.  
-This version provides modern typing and syntax while staying compatible with Ubuntu 22.04 LTS — the lowest common denominator across CI and production systems.
-
-
-<br/><br/>
-
----
----
-
-<br/><br/>
-
-
-## 🧭 Choose `Python` as the Implementation Language  
+## 🧭 Choose `Python` as the Initial Implementation Language (Superseded)
 <a id="dec03"></a>*DEC 03 — 2025-10-09*  
 
+*(Note: This decision was superseded by [DEC 13](#dec13) switching the project to Go.)*
 
 ### Context
 
@@ -380,25 +85,9 @@ The project aims to be a **lightweight, dependency-free build tool** that runs a
 Compiled languages (e.g. Go, Rust) would require distributing multiple binaries and would prevent in-place auditing and modification.
 Python 3, by contrast, is preinstalled or easily available on all major platforms, balancing universality and maintainability.
 
----
-
-### Options Considered
-
-| Language | Pros | Cons |
-|-----------|------|------|
-| **Python** | ✅ Widely available<br>✅ No compile step<br>✅ Readable and introspectable  | ⚠️ Slower execution<br>⚠️ Limited single-file packaging |
-| **JavaScript / Node.js** | ✅ Familiar to web developers | ❌ Not standard on all OSes<br>❌ Frequent version churn |
-| **Bash** | ✅ Ubiquitous | ❌ Fragile for complex logic
-
 ### Decision
 
-Implement the project in **Python 3**, targeting **Python 3.10+** *(see [DEC 04](#dec04))*.  
-Python provides **zero-dependency execution**, **cross-platform reach**, and **transparent, editable source code**, aligning with the project’s principle of *clarity over complexity*.  
- It allows users to run the tool immediately and understand it fully.
-
-The performance trade-off compared to compiled binaries is acceptable for small workloads.  
-Future distributions may include `.pyz` or bundled binary releases as the project evolves.
-
+Implement the project initially in **Python 3**. Python provided zero-dependency execution for existing Python developers and transparent source code.
 
 <br/><br/>
 
