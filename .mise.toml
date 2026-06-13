@@ -7,3 +7,12 @@ go = "1.26.4"
 
 # Ruby: Used for Jekyll documentation site (docs/)
 ruby = "3.3.0"
+golangci-lint = "latest"
+
+[tasks]
+build = "go build -o bin/sheave ./cmd/sheave"
+test = "go test ./..."
+lint = "golangci-lint run"
+
+[tasks.ci]
+depends = ["lint", "test", "build"]
