@@ -89,6 +89,7 @@ Some of these we just want to consider, and may not want to implement.
   - [ ] Version tracking for presets
   - [ ] Preset updates and migrations
   - [ ] Compatibility checking
+- [ ] sheave way to get the AI to approve list of commands in gemini (tedious but worth it?)
 
 ### Phase 5: Developer Experience (v0.5.0)
 - [ ] Enhanced CLI
