@@ -256,7 +256,7 @@ func removeOldFiles(targetDir string, created map[string]bool, extension, projec
 	return hadChanges, nil
 }
 
-func concatenateMdcFilesForClaude(files []string) (string, error) {
+func concatenateMdcFiles(files []string) (string, error) {
 	var result strings.Builder
 	for _, file := range files {
 		content, err := readFileContent(file)
@@ -297,50 +297,57 @@ func concatenateMdFiles(files []string) (string, error) {
 	return result.String(), nil
 }
 
-func generateClaudeFile(aiRulesDir, claudeDir string, baseMdcFiles []string, projectRoot string, opts Options) (bool, error) {
-	baseContent, err := concatenateMdcFilesForClaude(baseMdcFiles)
+// GenerateSingleInstructionFile strips frontmatter from .mdc files and concatenates them along with .md files into a single instruction file.
+func GenerateSingleInstructionFile(outputFile string, mdcFiles []string, mdFiles []string, projectRoot string, opts Options) (bool, error) {
+	baseContent, err := concatenateMdcFiles(mdcFiles)
 	if err != nil {
 		return false, err
 	}
 
-	claudeSpecificDir := filepath.Join(aiRulesDir, "claude")
-	claudeMdFiles, err := getSortedFiles(claudeSpecificDir, "md")
+	specificContent, err := concatenateMdFiles(mdFiles)
 	if err != nil {
 		return false, err
 	}
 
-	claudeContent, err := concatenateMdFiles(claudeMdFiles)
-	if err != nil {
-		return false, err
-	}
-
-	newContent := baseContent + claudeContent
+	newContent := baseContent + specificContent
 	if newContent == "" {
 		return false, nil // Avoid writing an empty file if no contents
 	}
 
-	claudeOutput := filepath.Join(claudeDir, "CLAUDE.md")
-
-	if _, err := os.Stat(claudeOutput); err == nil {
-		existingContent, err := os.ReadFile(claudeOutput)
+	if _, err := os.Stat(outputFile); err == nil {
+		existingContent, err := os.ReadFile(outputFile)
 		if err == nil && string(existingContent) == newContent {
 			return false, nil // No change needed
 		}
 	}
 
 	if !opts.DryRun {
-		if err := os.WriteFile(claudeOutput, []byte(newContent), 0644); err != nil {
+		if err := os.MkdirAll(filepath.Dir(outputFile), 0755); err != nil {
+			return false, err
+		}
+		if err := os.WriteFile(outputFile, []byte(newContent), 0644); err != nil {
 			return false, err
 		}
 	}
 
 	if !opts.Quiet {
-		rel, _ := filepath.Rel(projectRoot, claudeOutput)
+		rel, _ := filepath.Rel(projectRoot, outputFile)
 		if rel == "" {
-			rel = claudeOutput
+			rel = outputFile
 		}
 		fmt.Printf("Generated: %s\n", rel)
 	}
 
 	return true, nil
+}
+
+func generateClaudeFile(aiRulesDir, claudeDir string, baseMdcFiles []string, projectRoot string, opts Options) (bool, error) {
+	claudeSpecificDir := filepath.Join(aiRulesDir, "claude")
+	claudeMdFiles, err := getSortedFiles(claudeSpecificDir, "md")
+	if err != nil {
+		return false, err
+	}
+
+	claudeOutput := filepath.Join(claudeDir, "CLAUDE.md")
+	return GenerateSingleInstructionFile(claudeOutput, baseMdcFiles, claudeMdFiles, projectRoot, opts)
 }
