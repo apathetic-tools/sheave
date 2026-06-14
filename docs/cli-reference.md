@@ -36,16 +36,17 @@ sheave init --format json
 
 ### `sheave enable`
 
-Enable presets (rules, workflows, or commands).
+Enable items (commands, rules, templates, or workflows).
 
 ```bash
-sheave enable [--rules RULES...] [--workflows WORKFLOWS...] [--commands COMMANDS...] [--config PATH]
+sheave enable [--rules RULES...] [--workflows WORKFLOWS...] [--commands COMMANDS...] [--templates TEMPLATES...] [--config PATH]
 ```
 
 **Options:**
 - `--rules RULES...` — Enable rule categories (e.g., `code-quality`, `testing`)
 - `--workflows WORKFLOWS...` — Enable workflows (e.g., `feature-setup`, `refactoring`)
 - `--commands COMMANDS...` — Enable commands (e.g., `generate-tests`, `format-code`)
+- `--templates TEMPLATES...` — Enable templates (e.g., `feature-plan`)
 - `--config PATH` — Specify config file path
 
 **Examples:**
@@ -65,16 +66,17 @@ sheave enable --rules code-quality --workflows feature-setup --commands generate
 
 ### `sheave disable`
 
-Disable presets.
+Disable items.
 
 ```bash
-sheave disable [--rules RULES...] [--workflows WORKFLOWS...] [--commands COMMANDS...] [--config PATH]
+sheave disable [--rules RULES...] [--workflows WORKFLOWS...] [--commands COMMANDS...] [--templates TEMPLATES...] [--config PATH]
 ```
 
 **Options:**
 - `--rules RULES...` — Disable rule categories
 - `--workflows WORKFLOWS...` — Disable workflows
 - `--commands COMMANDS...` — Disable commands
+- `--templates TEMPLATES...` — Disable templates
 - `--config PATH` — Specify config file path
 
 **Examples:**
@@ -88,7 +90,7 @@ sheave disable --workflows feature-setup
 
 ### `sheave sync`
 
-Sync presets to IDE configuration files.
+Sync guidance to IDE configuration files.
 
 ```bash
 sheave sync [--config PATH] [--ide IDE...] [--dry-run]
@@ -113,26 +115,26 @@ sheave sync --dry-run
 
 ### `sheave list`
 
-List available presets.
+List available items.
 
 ```bash
-sheave list [--rules] [--workflows] [--commands] [--all] [--format table|json]
+sheave list [commands|rules|templates|workflows] [--format table|json]
 ```
 
 **Options:**
-- `--rules` — List only rules
-- `--workflows` — List only workflows
-- `--commands` — List only commands
-- `--all` — List all presets (default)
+- `commands` — List only commands
+- `rules` — List only rules
+- `templates` — List only templates
+- `workflows` — List only workflows
 - `--format FORMAT` — Output format: `table` or `json` (default: `table`)
 
 **Examples:**
 ```bash
-# List all presets
+# List all items (grouped by type)
 sheave list
 
 # List only rules
-sheave list --rules
+sheave list rules
 
 # JSON output
 sheave list --format json
@@ -161,7 +163,7 @@ sheave check --strict
 
 ### `sheave show`
 
-Show current configuration and enabled presets.
+Show current configuration and enabled items.
 
 ```bash
 sheave show [--config PATH] [--format table|json]
@@ -203,7 +205,7 @@ These options can be used with any command:
 - `0` — Success
 - `1` — General error
 - `2` — Configuration error
-- `3` — Preset not found
+- `3` — Item not found
 - `4` — IDE sync error
 
 ## Examples
@@ -214,7 +216,7 @@ These options can be used with any command:
 # Initialize configuration
 sheave init
 
-# Enable presets
+# Enable items
 sheave enable --rules code-quality testing --workflows feature-setup
 
 # Check configuration
@@ -227,10 +229,10 @@ sheave sync
 ### Interactive Setup
 
 ```bash
-# List available presets
+# List available items
 sheave list
 
-# Enable presets interactively
+# Enable items interactively
 sheave enable --rules code-quality
 sheave enable --workflows feature-setup
 sheave enable --commands generate-tests

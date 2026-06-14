@@ -8,8 +8,8 @@ import (
 )
 
 var disableCmd = &cobra.Command{
-	Use:   "disable [preset_id]",
-	Short: "Disable a preset by adding it to ignore",
+	Use:   "disable [item_id]",
+	Short: "Disable an item by adding it to ignore",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		id := args[0]
@@ -42,9 +42,9 @@ var disableCmd = &cobra.Command{
 			if err := cfg.Save(path); err != nil {
 				return err
 			}
-			fmt.Printf("Disabled preset: %s\n", id)
+			fmt.Printf("Disabled item: %s\n", id)
 		} else {
-			fmt.Printf("Preset %s is already disabled.\n", id)
+			fmt.Printf("Item %s is already disabled.\n", id)
 		}
 
 		return nil

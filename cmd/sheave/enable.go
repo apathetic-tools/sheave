@@ -8,8 +8,8 @@ import (
 )
 
 var enableCmd = &cobra.Command{
-	Use:   "enable [preset_id]",
-	Short: "Enable a preset by adding it to extend-select",
+	Use:   "enable [item_id]",
+	Short: "Enable an item by adding it to extend-select",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		id := args[0]
@@ -49,9 +49,9 @@ var enableCmd = &cobra.Command{
 			if err := cfg.Save(path); err != nil {
 				return err
 			}
-			fmt.Printf("Enabled preset: %s\n", id)
+			fmt.Printf("Enabled item: %s\n", id)
 		} else {
-			fmt.Printf("Preset %s is already enabled.\n", id)
+			fmt.Printf("Item %s is already enabled.\n", id)
 		}
 
 		return nil

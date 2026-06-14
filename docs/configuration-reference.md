@@ -19,7 +19,7 @@ Sheave supports TOML configuration files. Configuration can be stored in:
 
 ### `select`
 
-List of preset categories to enable (similar to ruff's `select`).
+List of rule categories to enable (similar to ruff's `select`).
 
 **Type:** `list[str]`
 
@@ -37,7 +37,7 @@ select = [
 
 ### `ignore`
 
-List of specific presets to disable (similar to ruff's `ignore`).
+List of specific items to disable (similar to ruff's `ignore`).
 
 **Type:** `list[str]`
 
@@ -55,7 +55,7 @@ ignore = [
 
 ### `extend-select`
 
-Additional preset categories to enable without replacing existing selections.
+Additional rule categories to enable without replacing existing selections.
 
 **Type:** `list[str]`
 
@@ -70,7 +70,7 @@ extend-select = ["testing", "documentation"]
 
 ### `workflows`
 
-List of workflow presets to enable.
+List of workflow items to enable.
 
 **Type:** `list[str]`
 
@@ -88,7 +88,7 @@ workflows = [
 
 ### `commands`
 
-List of command presets to enable.
+List of command items to enable.
 
 **Type:** `list[str]`
 
@@ -104,6 +104,23 @@ commands = [
 ]
 ```
 
+### `templates`
+
+List of template items to enable.
+
+**Type:** `list[str]`
+
+**Default:** `[]`
+
+**Example:**
+```toml
+[tool.sheave]
+templates = [
+    "feature-plan",
+    "pr-template",
+]
+```
+
 ## Sync Configuration
 
 ### `[tool.sheave.sync]`
@@ -113,7 +130,7 @@ Configure which IDE integrations to sync.
 **Options:**
 - `cursor` — Sync to Cursor (`.cursor/rules/` and `.cursor/commands/`)
 - `claude` — Sync to Claude Desktop (`.claude/`)
-- `generic` — Sync to generic AI integrations (`.ai/rules/` and `.ai/commands/`)
+- `generic` — Sync to generic AI integrations (`.ai/rules/`, `.ai/commands/`, `.ai/templates/`, `.ai/workflows/`)
 
 **Type:** `dict[str, bool]`
 
@@ -137,12 +154,13 @@ generic = false
 
 ### `[tool.sheave.paths]`
 
-Custom paths for preset directories.
+Custom paths for guidance directories.
 
 **Options:**
-- `rules` — Directories to search for rule presets
-- `workflows` — Directories to search for workflow presets
-- `commands` — Directories to search for command presets
+- `rules` — Directories to search for rules
+- `workflows` — Directories to search for workflows
+- `commands` — Directories to search for commands
+- `templates` — Directories to search for templates
 
 **Type:** `dict[str, list[str]]`
 
@@ -152,6 +170,7 @@ Custom paths for preset directories.
 rules = []
 workflows = []
 commands = []
+templates = []
 ```
 
 **Example:**
@@ -163,6 +182,7 @@ rules = [
 ]
 workflows = [".sheave/workflows"]
 commands = [".sheave/commands"]
+templates = [".sheave/templates"]
 ```
 
 ## Per-File Configuration
@@ -190,7 +210,7 @@ ignore = [
 extend-select = ["security"]
 ```
 
-## Preset Categories
+## Guidance Categories
 
 ### Rules
 
@@ -205,7 +225,7 @@ Rule categories available for `select`:
 
 ### Workflows
 
-Workflow presets available:
+Workflow items available:
 
 - `feature-setup` — Setting up new features
 - `refactoring` — Refactoring patterns
@@ -215,12 +235,19 @@ Workflow presets available:
 
 ### Commands
 
-Command presets available:
+Command items available:
 
 - `generate-tests` — Generate test files
 - `format-code` — Format and lint code
 - `create-docs` — Create documentation
 - `run-checks` — Run code quality checks
+
+### Templates
+
+Template items available:
+
+- `feature-plan` — Feature plan templates
+- `pr-template` — Pull request templates
 
 ## Configuration Precedence
 
@@ -239,8 +266,8 @@ Configuration is validated when:
 - Loading configuration programmatically
 
 Validation checks:
-- All selected preset categories exist
-- All ignored presets exist
+- All selected categories exist
+- All ignored items exist
 - File patterns are valid glob patterns
 - No conflicting configurations
 

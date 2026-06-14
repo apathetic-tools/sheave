@@ -30,50 +30,56 @@ config = load_config(Path("pyproject.toml"))
 
 **Returns:** `Config` object with loaded configuration
 
-### `sheave.presets.list_presets()`
+### `sheave.items.list_items()`
 
-List available presets.
+List available items.
 
 ```python
-from sheave.presets import list_presets
+from sheave.items import list_items
 
-# List all presets
-all_presets = list_presets()
+# List all items
+all_items = list_items()
 
 # List only rules
-rules = list_presets(preset_type="rules")
+rules = list_items(item_type="rules")
 
 # List only workflows
-workflows = list_presets(preset_type="workflows")
+workflows = list_items(item_type="workflows")
 
 # List only commands
-commands = list_presets(preset_type="commands")
+commands = list_items(item_type="commands")
+
+# List only templates
+templates = list_items(item_type="templates")
 ```
 
-**Returns:** `dict` mapping preset IDs to metadata
+**Returns:** `dict` mapping item IDs to metadata
 
-### `sheave.presets.get_preset()`
+### `sheave.items.get_item()`
 
-Get a specific preset by ID.
+Get a specific item by ID.
 
 ```python
-from sheave.presets import get_preset
+from sheave.items import get_item
 
-# Get a rule preset
-rule = get_preset("code-quality.E501")
+# Get a rule
+rule = get_item("code-quality.E501")
 
-# Get a workflow preset
-workflow = get_preset("feature-setup")
+# Get a workflow
+workflow = get_item("feature-setup")
 
-# Get a command preset
-command = get_preset("generate-tests")
+# Get a command
+command = get_item("generate-tests")
+
+# Get a template
+template = get_item("feature-plan")
 ```
 
-**Returns:** `Preset` object or `None` if not found
+**Returns:** `Item` object or `None` if not found
 
 ### `sheave.sync.sync_to_ide()`
 
-Sync presets to IDE configuration files.
+Sync items to IDE configuration files.
 
 ```python
 from sheave.sync import sync_to_ide
@@ -123,12 +129,13 @@ config = Config(
 
 **Attributes:**
 - `select: list[str]` — Enabled rule categories
-- `ignore: list[str]` — Disabled specific presets
+- `ignore: list[str]` — Disabled specific items
 - `extend_select: list[str]` — Additional rule categories
 - `workflows: list[str]` — Enabled workflows
 - `commands: list[str]` — Enabled commands
+- `templates: list[str]` — Enabled templates
 - `sync: dict[str, bool]` — IDE sync configuration
-- `paths: dict[str, list[str]]` — Custom preset paths
+- `paths: dict[str, list[str]]` — Custom item paths
 
 ### `sheave.config.validate_config()`
 
@@ -148,54 +155,54 @@ if warnings:
 
 **Returns:** `tuple[list[str], list[str]]` — (errors, warnings)
 
-## Preset API
+## Item API
 
-### `Preset` Class
+### `Item` Class
 
-Preset object with metadata:
+Item object with metadata:
 
 ```python
-from sheave.presets import Preset
+from sheave.items import Item
 
-preset = Preset(
+item = Item(
     id="code-quality.E501",
     name="Line too long",
     category="code-quality",
     description="Enforce maximum line length",
-    content="...",  # Preset content
+    content="...",  # Item content
 )
 ```
 
 **Attributes:**
-- `id: str` — Unique preset identifier
+- `id: str` — Unique item identifier
 - `name: str` — Human-readable name
-- `category: str` — Preset category
-- `description: str` — Preset description
-- `content: str` — Preset content (rules, workflow steps, command definition)
+- `category: str` — Item category
+- `description: str` — Item description
+- `content: str` — Item content (rules, workflow steps, command definition, template)
 
-### `sheave.presets.resolve_presets()`
+### `sheave.items.resolve_items()`
 
-Resolve enabled presets from configuration.
+Resolve enabled items from configuration.
 
 ```python
-from sheave.presets import resolve_presets
+from sheave.items import resolve_items
 from sheave.config import load_config
 
 config = load_config()
-presets = resolve_presets(config)
+items = resolve_items(config)
 
-# presets is a dict with keys: "rules", "workflows", "commands"
-for rule in presets["rules"]:
+# items is a dict with keys: "rules", "workflows", "commands", "templates"
+for rule in items["rules"]:
     print(f"Rule: {rule.id} - {rule.name}")
 ```
 
-**Returns:** `dict[str, list[Preset]]` — Mapping preset types to lists of presets
+**Returns:** `dict[str, list[Item]]` — Mapping item types to lists of items
 
 ## Sync API
 
 ### `sheave.sync.SyncResult` Class
 
-Result of syncing presets to an IDE:
+Result of syncing items to an IDE:
 
 ```python
 from sheave.sync import SyncResult
@@ -218,7 +225,7 @@ result = SyncResult(
 
 ### `sheave.sync.get_sync_paths()`
 
-Get file paths where presets will be synced.
+Get file paths where items will be synced.
 
 ```python
 from sheave.sync import get_sync_paths
@@ -227,6 +234,7 @@ paths = get_sync_paths("cursor")
 # Returns: {
 #     "rules": Path(".cursor/rules"),
 #     "commands": Path(".cursor/commands"),
+#     "templates": Path(".cursor/templates"),
 # }
 ```
 
@@ -237,7 +245,7 @@ paths = get_sync_paths("cursor")
 ```python
 from pathlib import Path
 from sheave.config import load_config, validate_config
-from sheave.presets import resolve_presets
+from sheave.items import resolve_items
 from sheave.sync import sync_to_ide
 
 # Load and validate configuration
@@ -247,15 +255,15 @@ errors, warnings = validate_config(config)
 if errors:
     raise ValueError(f"Configuration errors: {errors}")
 
-# Resolve enabled presets
-presets = resolve_presets(config)
+# Resolve enabled items
+items = resolve_items(config)
 
-# Print enabled presets
-print("Enabled presets:")
-for preset_type, preset_list in presets.items():
-    print(f"\n{preset_type}:")
-    for preset in preset_list:
-        print(f"  - {preset.id}: {preset.name}")
+# Print enabled items
+print("Enabled items:")
+for item_type, item_list in items.items():
+    print(f"\n{item_type}:")
+    for item in item_list:
+        print(f"  - {item.id}: {item.name}")
 
 # Sync to IDE
 results = sync_to_ide(config, ide="cursor")

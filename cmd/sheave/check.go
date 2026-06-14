@@ -5,13 +5,13 @@ import (
 	"os"
 
 	"github.com/apathetic-tools/sheave/internal/config"
-	"github.com/apathetic-tools/sheave/internal/preset"
+	"github.com/apathetic-tools/sheave/internal/registry"
 	"github.com/spf13/cobra"
 )
 
 var checkCmd = &cobra.Command{
 	Use:   "check",
-	Short: "Validate configuration against known presets",
+	Short: "Validate configuration against known items",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		path := ".sheave.toml"
 		cfg, err := config.Load(path)
@@ -19,10 +19,10 @@ var checkCmd = &cobra.Command{
 			return err
 		}
 
-		reg := preset.NewRegistry()
+		reg := registry.NewRegistry()
 		cwd, err := os.Getwd()
 		if err == nil {
-			_ = reg.DiscoverCustomPresets(cwd)
+			_ = reg.DiscoverCustomItems(cwd)
 		}
 
 		active := cfg.Resolve()
@@ -37,7 +37,7 @@ var checkCmd = &cobra.Command{
 		}
 
 		if len(unknown) > 0 {
-			fmt.Printf("Warning: Found %d unknown preset(s) in configuration:\n", len(unknown))
+			fmt.Printf("Warning: Found %d unknown item(s) in configuration:\n", len(unknown))
 			for _, v := range unknown {
 				fmt.Printf("  - %s\n", v)
 			}

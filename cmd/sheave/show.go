@@ -18,7 +18,7 @@ var showCmd = &cobra.Command{
 		}
 
 		active := cfg.Resolve()
-		fmt.Printf("Active presets (%d total):\n", len(active))
+		fmt.Printf("Active items (%d total):\n", len(active))
 		for _, v := range active {
 			fmt.Printf("  - %s\n", v)
 		}

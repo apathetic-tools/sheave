@@ -10,13 +10,13 @@ Real-world usage examples for Sheave.
 
 ## Example 1: Basic Python Project
 
-Enable code quality and testing presets for a Python project:
+Enable code quality and testing rules for a Python project:
 
 ```bash
 # Initialize configuration
 sheave init
 
-# Enable presets
+# Enable items
 sheave enable --rules code-quality testing documentation
 sheave enable --workflows feature-setup debugging
 sheave enable --commands generate-tests format-code
@@ -109,16 +109,16 @@ sheave sync --ide cursor
 sheave sync --ide cursor claude
 ```
 
-## Example 5: Custom Preset Paths
+## Example 5: Custom Guidance Paths
 
-Use custom preset directories:
+Use custom guidance directories:
 
 ```toml
 [tool.sheave]
 select = ["code-quality"]
 
 [tool.sheave.paths]
-# Custom paths for presets
+# Custom paths for guidance items
 rules = [
     ".sheave/rules",           # Project-specific rules
     "~/.sheave/rules",          # User-specific rules
@@ -134,19 +134,19 @@ Use Sheave programmatically in your tools:
 ```python
 from pathlib import Path
 from sheave.config import load_config
-from sheave.presets import resolve_presets
+from sheave.items import resolve_items
 from sheave.sync import sync_to_ide
 
 # Load configuration
 config = load_config(Path(".sheave.toml"))
 
-# Resolve enabled presets
-presets = resolve_presets(config)
+# Resolve enabled items
+items = resolve_items(config)
 
 # Get rule content for AI prompt
 rules_content = "\n".join(
-    preset.content
-    for preset in presets["rules"]
+    item.content
+    for item in items["rules"]
 )
 
 # Use in AI interaction
@@ -156,7 +156,7 @@ ai_prompt = f"""
 Please review this code and suggest improvements.
 """
 
-# Sync after enabling new presets
+# Sync after enabling new items
 sync_to_ide(config, ide="cursor")
 ```
 
@@ -172,10 +172,10 @@ Validate configuration in CI:
     sheave check --strict
 ```
 
-Or sync presets as part of setup:
+Or sync guidance items as part of setup:
 
 ```yaml
-- name: Setup Sheave presets
+- name: Setup Sheave items
   run: |
     pip install sheave
     sheave sync --ide cursor
@@ -183,7 +183,7 @@ Or sync presets as part of setup:
 
 ## Example 8: Gradual Adoption
 
-Start with minimal presets and gradually add more:
+Start with minimal guidance and gradually add more:
 
 ```toml
 # Phase 1: Start with code quality only
@@ -242,16 +242,16 @@ workflows = [
 ]
 ```
 
-## Example 10: Preset Discovery
+## Example 10: Guidance Discovery
 
-Discover and explore available presets:
+Discover and explore available builtins and custom instructions:
 
 ```bash
-# List all presets
+# List all items
 sheave list
 
 # List only rules
-sheave list --rules
+sheave list rules
 
 # Show current configuration
 sheave show

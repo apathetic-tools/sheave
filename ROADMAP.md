@@ -1,10 +1,10 @@
 <!-- Roadmap.md -->
 # 🧭 Roadmap
 
-**Important Clarification**: Sheave provides **AI guidance presets for agentic IDE integrations** - preset rules, workflows, and commands that can be selectively enabled, similar to how you configure ruff linting rules. These presets leverage functionality that already exists in your IDE.
+**Important Clarification**: Sheave provides **AI guidance items for agentic IDE integrations** - item rules, workflows, and commands that can be selectively enabled, similar to how you configure ruff linting rules. These items leverage functionality that already exists in your IDE.
 
 ## Key Points
-- **Selective presets**: Choose which rules, workflows, and commands to enable
+- **Selective items**: Choose which rules, workflows, and commands to enable
 - **IDE integration**: Works with Cursor, Claude Desktop, and similar tools
 - **Lint-like model**: Similar to how you selectively enable linting rules
 - **Well-tested**: Unit, integration, and E2E coverage
@@ -26,16 +26,16 @@ Some of these we just want to consider, and may not want to implement.
   - [x] Load configuration from `.sheave.toml`
   - [x] Support `select`, `ignore`, `extend-select` options
   - [x] Configuration validation
-- [x] Preset discovery and loading
-  - [x] Built-in preset registry
-  - [x] Load presets from default directories
-  - [x] Support custom preset paths
-  - [x] Preset metadata (id, name, category, description)
+- [x] Item discovery and loading
+  - [x] Built-in item registry
+  - [x] Load items from default directories
+  - [x] Support custom item paths
+  - [x] Item metadata (id, name, category, description)
 - [x] Basic CLI commands
   - [x] `sheave init` — Initialize configuration
-  - [x] `sheave list` — List available presets
-  - [x] `sheave enable` — Enable presets
-  - [x] `sheave disable` — Disable presets
+  - [x] `sheave list` — List available items
+  - [x] `sheave enable` — Enable items
+  - [x] `sheave disable` — Disable items
   - [x] `sheave show` — Show current configuration
   - [x] `sheave check` — Validate configuration
 
@@ -49,28 +49,28 @@ Some of these we just want to consider, and may not want to implement.
   - [x] Chunk 6: Claude compilation (stitch `.mdc` bodies + `.ai/rules/claude/*.md` into `CLAUDE.md`)
   - [x] Dry-run mode
   - [ ] IDE-specific configuration
-- [ ] Preset content generation
+- [ ] Item content generation
   - [ ] Generate rule files (`.mdc` format for Cursor)
   - [ ] Generate workflow files
   - [ ] Generate command files
-  - [ ] Handle preset dependencies
-  - [ ] Merge multiple presets intelligently
+  - [ ] Handle item dependencies
+  - [ ] Merge multiple items intelligently
 
-### Phase 3: Preset Library (v0.3.0)
-- [ ] Rule presets
+### Phase 3: Item Library (v0.3.0)
+- [ ] Rule items
   - [ ] Code quality rules (E501, F401, etc.)
   - [ ] Testing rules (T001, T002, etc.)
   - [ ] Documentation rules
   - [ ] Security rules
   - [ ] Performance rules
   - [ ] Accessibility rules
-- [ ] Workflow presets
+- [ ] Workflow items
   - [ ] Feature setup workflow
   - [ ] Refactoring workflow
   - [ ] Debugging workflow
   - [ ] Code review workflow
   - [ ] Testing workflow
-- [ ] Command presets
+- [ ] Command items
   - [ ] Generate tests command
   - [ ] Format code command
   - [ ] Create docs command
@@ -81,25 +81,25 @@ Some of these we just want to consider, and may not want to implement.
   - [ ] Pattern-based overrides (e.g., `[tool.sheave."tests/**"]`)
   - [ ] File pattern matching
   - [ ] Configuration inheritance
-- [ ] Preset dependencies
+- [ ] Item dependencies
   - [ ] Automatic dependency resolution
   - [ ] Circular dependency detection
   - [ ] Optional dependencies
-- [ ] Preset versioning
-  - [ ] Version tracking for presets
-  - [ ] Preset updates and migrations
+- [ ] Item versioning
+  - [ ] Version tracking for items
+  - [ ] Item updates and migrations
   - [ ] Compatibility checking
-- [ ] sheave way to get the AI to approve list of commands in gemini (tedious but worth it?)
+- [ ] way to get the AI to approve list of commands in gemini (tedious but worth it?)
 
 ### Phase 5: Developer Experience (v0.5.0)
 - [ ] Enhanced CLI
-  - [ ] Interactive preset selection
-  - [ ] Preset search and filtering
+  - [ ] Interactive item selection
+  - [ ] Item search and filtering
   - [ ] Configuration diff view
-  - [ ] Preset preview
+  - [ ] Item preview
 - [ ] Programmatic API
   - [ ] `sheave.config` module
-  - [ ] `sheave.presets` module
+  - [ ] `sheave.items` module
   - [ ] `sheave.sync` module
   - [ ] Type hints and documentation
 - [ ] Configuration schema
@@ -112,17 +112,17 @@ Some of these we just want to consider, and may not want to implement.
 ### Core Commands
 - [x] `sheave --version` — Version information
 - [ ] `sheave init` — Initialize configuration file
-- [ ] `sheave list` — List available presets
-- [ ] `sheave enable` — Enable presets
-- [ ] `sheave disable` — Disable presets
-- [ ] `sheave sync` — Sync presets to IDE
+- [ ] `sheave list` — List available items
+- [ ] `sheave enable` — Enable items
+- [ ] `sheave disable` — Disable items
+- [ ] `sheave sync` — Sync items to IDE
 - [ ] `sheave show` — Show current configuration
 - [ ] `sheave check` — Validate configuration
 
 ### Future Commands
-- [ ] `sheave update` — Update preset library
-- [ ] `sheave search` — Search for presets
-- [ ] `sheave preview` — Preview preset content
+- [ ] `sheave update` — Update item library
+- [ ] `sheave search` — Search for items
+- [ ] `sheave preview` — Preview item content
 - [ ] `sheave diff` — Show configuration differences
 - [ ] `sheave migrate` — Migrate configuration format
 
@@ -130,8 +130,8 @@ Some of these we just want to consider, and may not want to implement.
 
 ### Basic Configuration
 - [x] TOML configuration format
-- [ ] `select` option (enable preset categories)
-- [ ] `ignore` option (disable specific presets)
+- [ ] `select` option (enable item categories)
+- [ ] `ignore` option (disable specific items)
 - [ ] `extend-select` option (add more categories)
 - [ ] `workflows` option (enable workflows)
 - [ ] `commands` option (enable commands)
@@ -139,7 +139,7 @@ Some of these we just want to consider, and may not want to implement.
 ### Advanced Configuration
 - [ ] Per-file pattern overrides
 - [ ] IDE-specific sync configuration
-- [ ] Custom preset paths
+- [ ] Custom item paths
 - [ ] Configuration inheritance
 - [ ] Environment variable support
 
@@ -158,24 +158,24 @@ Some of these we just want to consider, and may not want to implement.
 - [ ] Configuration file discovery
 - [ ] Configuration merging
 
-### Preset API
-- [ ] `sheave.presets.list_presets()` — List available presets
-- [ ] `sheave.presets.get_preset()` — Get specific preset
-- [ ] `sheave.presets.resolve_presets()` — Resolve enabled presets
-- [ ] `Preset` class — Preset object
-- [ ] Preset discovery and loading
-- [ ] Preset dependency resolution
+### Item API
+- [ ] `sheave.items.list_presets()` — List available items
+- [ ] `sheave.items.get_preset()` — Get specific item
+- [ ] `sheave.items.resolve_presets()` — Resolve enabled items
+- [ ] `Item` class — Item object
+- [ ] Item discovery and loading
+- [ ] Item dependency resolution
 
 ### Sync API
-- [ ] `sheave.sync.sync_to_ide()` — Sync presets to IDE
+- [ ] `sheave.sync.sync_to_ide()` — Sync items to IDE
 - [ ] `sheave.sync.get_sync_paths()` — Get sync file paths
 - [ ] `SyncResult` class — Sync result object
 - [ ] IDE-specific sync implementations
 - [ ] File generation and updates
 
-## 📦 Preset Library
+## 📦 Item Library
 
-### Rule Presets
+### Rule Items
 - [ ] Code quality category
   - [ ] E501 — Line too long
   - [ ] F401 — Unused imports
@@ -200,7 +200,7 @@ Some of these we just want to consider, and may not want to implement.
   - [ ] Accessibility guidelines
   - [ ] Inclusive design practices
 
-### Workflow Presets
+### Workflow Items
 - [ ] Feature setup workflow
 - [ ] Refactoring workflow
 - [ ] Debugging workflow
@@ -208,7 +208,7 @@ Some of these we just want to consider, and may not want to implement.
 - [ ] Testing workflow
 - [ ] Documentation workflow
 
-### Command Presets
+### Command Items
 - [ ] Generate tests command
 - [ ] Format code command
 - [ ] Create docs command
@@ -220,8 +220,8 @@ Some of these we just want to consider, and may not want to implement.
 
 ### Test Infrastructure
 - [ ] Unit tests for configuration loading
-- [ ] Unit tests for preset discovery
-- [ ] Unit tests for preset resolution
+- [ ] Unit tests for item discovery
+- [ ] Unit tests for item resolution
 - [ ] Unit tests for IDE sync
 - [ ] Integration tests for CLI commands
 - [ ] Integration tests for full workflows
@@ -229,7 +229,7 @@ Some of these we just want to consider, and may not want to implement.
 
 ### Test Organization
 - [ ] Organize tests by feature area
-- [ ] Test fixtures for preset files
+- [ ] Test fixtures for item files
 - [ ] Test fixtures for configuration files
 - [ ] Mock IDE file systems
 - [ ] Test configuration validation
@@ -249,9 +249,9 @@ Some of these we just want to consider, and may not want to implement.
 
 ### Developer Documentation
 - [ ] Architecture documentation
-- [ ] Preset format specification
+- [ ] Item format specification
 - [ ] IDE integration guide
-- [ ] Contributing guide for presets
+- [ ] Contributing guide for items
 - [ ] Development setup guide
 
 ## 🚀 Deployment
@@ -266,35 +266,35 @@ Some of these we just want to consider, and may not want to implement.
 - [ ] Automated testing
 - [ ] Automated documentation builds
 - [ ] Release automation
-- [ ] Preset library updates
+- [ ] Item library updates
 
 ## 💡 Future Ideas
 
 ### Potential Features
-- [ ] Preset marketplace/registry
-- [ ] Preset sharing between projects
-- [ ] Preset analytics
+- [ ] Item marketplace/registry
+- [ ] Item sharing between projects
+- [ ] Item analytics
 - [ ] IDE plugin support
 - [ ] VS Code extension
 - [ ] Neovim integration
-- [ ] Preset templates
-- [ ] Preset validation tools
+- [ ] Item templates
+- [ ] Item validation tools
 
 ### Integration Ideas
 - [ ] GitHub Actions integration
 - [ ] Pre-commit hooks
 - [ ] CI/CD pipeline integration
 - [ ] Project templates
-- [ ] Preset recommendations
+- [ ] Item recommendations
 
 ## 🔧 Development Infrastructure
 
 ### Tooling
-- [ ] Preset development tools
-- [ ] Preset testing framework
-- [ ] Preset validation
+- [ ] Item development tools
+- [ ] Item testing framework
+- [ ] Item validation
 - [ ] Configuration migration tools
-- [ ] Preset documentation generator
+- [ ] Item documentation generator
 
 ### Code Quality
 - [ ] Type checking (mypy, pyright)

@@ -43,27 +43,19 @@ sheave sync
 
 ---
 
-## 🎯 What is Sheave?
+## 🎯 What are the Types of Guidance?
 
-Sheave offers a curated collection of AI guidance presets that you can selectively enable:
+Sheave fundamentally manages four types of AI guidance:
 
-- **Preset Rules**: Pre-configured prompt rules that get added to each AI interaction
-  - Code quality standards
-  - Testing best practices
-  - Documentation guidelines
-  - Security considerations
+- **Commands**: Ready-to-use prompt definitions for common development tasks (e.g., Generate test files, Run code quality checks, `commit`).
+- **Rules**: Prompt instructions that get automatically added to each AI interaction (e.g., Code quality standards, Git conventions, Security considerations).
+- **Templates**: Standardized formats for generating new files or documents (e.g., Feature plan templates, PR templates).
+- **Workflows**: Step-by-step guides for multi-stage processes (e.g., Troubleshooting guides, Feature setup).
 
-- **Preset Workflows**: Common workflows you can point an AI assistant to
-  - Setting up new features
-  - Refactoring patterns
-  - Debugging strategies
-  - Code review checklists
+### Builtins vs Custom Instructions
 
-- **Preset Commands**: Ready-to-use commands for common development tasks
-  - Generate test files
-  - Create documentation
-  - Run code quality checks
-  - Format and lint code
+- **Builtins**: Commands, Rules, Templates, and Workflows that are internally defined and shipped with Sheave. You can selectively enable them.
+- **Custom Instructions**: Your own project-specific guidance defined in the `.ai/` directory (e.g., `.ai/rules/`, `.ai/commands/`, `.ai/templates/`, `.ai/workflows/`).
 
 All of these leverage functionality that already exists in your IDE — Sheave just provides a well-organized, selective set of presets you can opt into, similar to how ruff lets you choose which linting rules to enable.
 

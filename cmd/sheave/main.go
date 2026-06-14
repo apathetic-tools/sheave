@@ -9,7 +9,7 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:     "sheave",
-	Short:   "Sheave provides AI guidance presets for agentic IDE integrations",
+	Short:   "Sheave provides AI guidance for agentic IDE integrations",
 	Version: "0.2.0",
 }
 

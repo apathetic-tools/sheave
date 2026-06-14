@@ -6,7 +6,7 @@ permalink: /sheave/configuration
 
 # Configuration
 
-Sheave uses a ruff-like configuration model where you `select` which presets to enable and `ignore` specific ones you don't want. Configuration can be stored in `pyproject.toml` or a standalone `.sheave.toml` file.
+Sheave uses a ruff-like configuration model where you `select` which items to enable and `ignore` specific ones you don't want. Configuration can be stored in `pyproject.toml` or a standalone `.sheave.toml` file.
 
 For a complete reference of all configuration options, see the [Configuration Reference](/sheave/configuration-reference).
 
@@ -26,9 +26,9 @@ sheave sync --config /path/to/config.toml
 
 ## Basic Configuration
 
-### Selecting Presets
+### Selecting Items
 
-Use `select` to enable preset categories (similar to ruff's `select`):
+Use `select` to enable items (similar to ruff's `select`):
 
 ```toml
 [tool.sheave]
@@ -41,9 +41,9 @@ select = [
 ]
 ```
 
-### Ignoring Specific Presets
+### Ignoring Specific Items
 
-Use `ignore` to disable specific presets (similar to ruff's `ignore`):
+Use `ignore` to disable specific items (similar to ruff's `ignore`):
 
 ```toml
 [tool.sheave]
@@ -58,7 +58,7 @@ ignore = [
 
 ### Extending Selections
 
-Use `extend-select` to add more presets without replacing existing ones:
+Use `extend-select` to add more items without replacing existing ones:
 
 ```toml
 [tool.sheave]
@@ -66,7 +66,7 @@ select = ["code-quality"]
 extend-select = ["testing", "documentation"]
 ```
 
-## Preset Categories
+## Guidance Categories
 
 ### Rules
 
@@ -113,11 +113,23 @@ commands = [
 ]
 ```
 
+### Templates
+
+Templates are standardized formats for generating new files or documents:
+
+```toml
+[tool.sheave]
+templates = [
+    "feature-plan",     # Feature plan templates
+    "pr-template",      # Pull request templates
+]
+```
+
 ## Advanced Configuration
 
-### Per-File Presets
+### Per-File Guidance
 
-Enable or disable presets for specific file patterns:
+Enable or disable items for specific file patterns:
 
 ```toml
 [tool.sheave]
@@ -143,19 +155,23 @@ claude = true
 generic = false  # Don't create .ai/ directories
 ```
 
-### Custom Preset Paths
+### Custom Paths
 
-Point to custom preset directories:
+> [!NOTE]
+> Custom instructions (markdown files) placed in the root of your project under the `.ai/` directory (e.g., `.ai/rules/`, `.ai/commands/`, `.ai/templates/`, `.ai/workflows/`) are automatically discovered and enabled by default.
+
+To point to custom directories outside of the default `.ai/` structure:
 
 ```toml
 [tool.sheave]
 select = ["code-quality"]
 
 [tool.sheave.paths]
-# Custom paths for presets
+# Custom paths for items
 rules = [".sheave/rules"]
 workflows = [".sheave/workflows"]
 commands = [".sheave/commands"]
+templates = [".sheave/templates"]
 ```
 
 ## Configuration Examples
@@ -228,7 +244,7 @@ sheave check
 ```
 
 This will:
-- Verify that all selected presets exist
+- Verify that all selected items exist
 - Check for conflicting ignore patterns
 - Validate file patterns
 - Report any issues

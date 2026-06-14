@@ -46,9 +46,12 @@ sheave init
 
 This creates a `.sheave.toml` file (or adds a `[tool.sheave]` section to your `pyproject.toml`).
 
-### Step 2: Enable Presets
+### Step 2: Enable Guidance
 
-Enable presets using the CLI:
+> [!NOTE]
+> By default, any custom instructions (markdown files) placed in the root of your project under the `.ai/` directory (e.g., `.ai/rules/`, `.ai/commands/`, `.ai/templates/`, `.ai/workflows/`) are automatically discovered and enabled when found.
+
+Enable specific builtins or items using the CLI:
 
 ```bash
 # Enable specific rule categories
@@ -59,6 +62,9 @@ sheave enable --workflows feature-setup refactoring
 
 # Enable specific commands
 sheave enable --commands generate-tests format-code
+
+# Enable specific templates
+sheave enable --templates feature-plan
 ```
 
 Or edit your configuration file directly:
@@ -76,11 +82,14 @@ workflows = ["feature-setup", "refactoring"]
 
 # Enable commands
 commands = ["generate-tests", "format-code"]
+
+# Enable templates
+templates = ["feature-plan"]
 ```
 
 ### Step 3: Sync to IDE
 
-Apply the presets to your IDE configuration:
+Apply the active guidance to your IDE configuration:
 
 ```bash
 sheave sync
@@ -89,7 +98,7 @@ sheave sync
 This creates or updates the appropriate configuration files for your IDE:
 - `.cursor/rules/` for Cursor
 - `.claude/` for Claude Desktop
-- `.ai/rules/` and `.ai/commands/` for generic AI integrations
+- `.ai/rules/`, `.ai/commands/`, `.ai/templates/`, `.ai/workflows/` for generic AI integrations
 
 ## Configuration File Format
 
@@ -126,33 +135,37 @@ poetry add sheave
 # 2. Initialize configuration
 sheave init
 
-# 3. Enable presets
+# 3. Enable guidance
 sheave enable --rules code-quality testing documentation
 sheave enable --workflows feature-setup debugging
 sheave enable --commands generate-tests format-code
+sheave enable --templates feature-plan
 
 # 4. Sync to IDE
 sheave sync
 ```
 
-After running these commands, your IDE will have access to the enabled presets.
+After running these commands, your IDE will have access to the enabled guidance.
 
-## Listing Available Presets
+## Listing Available Guidance
 
-See what presets are available:
+See what builtins and custom instructions are available:
 
 ```bash
-# List all available presets
+# List all available items
 sheave list
 
 # List only rules
-sheave list --rules
+sheave list rules
 
 # List only workflows
-sheave list --workflows
+sheave list workflows
 
 # List only commands
-sheave list --commands
+sheave list commands
+
+# List only templates
+sheave list templates
 ```
 
 ## Next Steps
