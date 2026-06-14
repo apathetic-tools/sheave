@@ -9,8 +9,9 @@ import (
 )
 
 var initCmd = &cobra.Command{
-	Use:   "init",
-	Short: "Initialize sheave configuration",
+	GroupID: "utility",
+	Use:     "init",
+	Short:   "Initialize sheave configuration",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		path := ".sheave.toml"
 		if _, err := os.Stat(path); err == nil {

@@ -19,3 +19,8 @@ func main() {
 		os.Exit(1)
 	}
 }
+
+func init() {
+	rootCmd.AddGroup(&cobra.Group{ID: "guidance", Title: "Guidance Commands:"})
+	rootCmd.AddGroup(&cobra.Group{ID: "utility", Title: "Utility Commands:"})
+}

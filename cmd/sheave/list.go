@@ -12,6 +12,7 @@ import (
 )
 
 var listCmd = &cobra.Command{
+	GroupID:   "guidance",
 	Use:       "list [type]",
 	Short:     "List available items",
 	ValidArgs: []string{"commands", "rules", "templates", "workflows"},

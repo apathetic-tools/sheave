@@ -8,9 +8,10 @@ import (
 )
 
 var disableCmd = &cobra.Command{
-	Use:   "disable [item_id]",
-	Short: "Disable an item by adding it to ignore",
-	Args:  cobra.ExactArgs(1),
+	GroupID: "guidance",
+	Use:     "disable [item_id]",
+	Short:   "Disable an item by adding it to ignore",
+	Args:    cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		id := args[0]
 		path := ".sheave.toml"

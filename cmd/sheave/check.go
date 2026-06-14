@@ -10,8 +10,9 @@ import (
 )
 
 var checkCmd = &cobra.Command{
-	Use:   "check",
-	Short: "Validate configuration against known items",
+	GroupID: "guidance",
+	Use:     "check",
+	Short:   "Validate configuration against known items",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		path := ".sheave.toml"
 		cfg, err := config.Load(path)

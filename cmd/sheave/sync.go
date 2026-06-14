@@ -13,8 +13,9 @@ var (
 )
 
 var syncCmd = &cobra.Command{
-	Use:   "sync",
-	Short: "Sync AI guidance files from .ai/ to IDE-specific directories",
+	GroupID: "guidance",
+	Use:     "sync",
+	Short:   "Sync AI guidance files from .ai/ to IDE-specific directories",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		opts := sync.Options{
 			Quiet:  quiet,

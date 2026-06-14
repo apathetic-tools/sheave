@@ -8,8 +8,9 @@ import (
 )
 
 var showCmd = &cobra.Command{
-	Use:   "show",
-	Short: "Show the fully resolved configuration",
+	GroupID: "guidance",
+	Use:     "show",
+	Short:   "Show the fully resolved configuration",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		path := ".sheave.toml"
 		cfg, err := config.Load(path)

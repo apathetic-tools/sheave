@@ -8,7 +8,9 @@ permalink: /sheave/cli-reference
 
 Complete reference for all Sheave command-line options.
 
-## Commands
+## Guidance Commands
+
+Commands for managing AI guidance configuration and resolving rules.
 
 ### `sheave init`
 
@@ -264,3 +266,20 @@ sheave sync --ide cursor claude
 
 
 
+
+## Utility Commands
+
+General tools and utilities for project structure and context.
+
+### `sheave project`
+
+Generate a formatted, hierarchical summary of the project structure, skipping common ignore directories (e.g., `.git`, `node_modules`, `__pycache__`). This is useful for providing the AI with a clean workspace overview.
+
+```bash
+sheave project
+```
+
+**Examples:**
+```bash
+sheave project
+```

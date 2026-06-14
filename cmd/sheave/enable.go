@@ -8,9 +8,10 @@ import (
 )
 
 var enableCmd = &cobra.Command{
-	Use:   "enable [item_id]",
-	Short: "Enable an item by adding it to extend-select",
-	Args:  cobra.ExactArgs(1),
+	GroupID: "guidance",
+	Use:     "enable [item_id]",
+	Short:   "Enable an item by adding it to extend-select",
+	Args:    cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		id := args[0]
 		path := ".sheave.toml"
