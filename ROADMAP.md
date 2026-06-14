@@ -1,4 +1,4 @@
-<!-- Roadmap.md -->
+<!-- ROADMAP.md (markdown) -->
 # 🧭 Roadmap
 
 **Important Clarification**: Sheave provides **AI guidance items for agentic IDE integrations** - item rules, workflows, and commands that can be selectively enabled, similar to how you configure ruff linting rules. These items leverage functionality that already exists in your IDE.
@@ -12,13 +12,15 @@
 Some of these we just want to consider, and may not want to implement.
 
 ## 🎯 Core Features
-- rename to 
-  - Clap "AI encouragement in the right direction"
-  - applause
-  - pulley
-  - praise
-  - mentat
-  - other words of encouragement
+
+### Possible names for the utility
+instead of sheave
+- Clap "AI encouragement in the right direction"
+- applause
+- pulley
+- praise
+- mentat
+- other words of encouragement
   
 
 ### Phase 1: Foundation (v0.1.0)

@@ -1,10 +1,15 @@
 package registry
 
 import (
+	"embed"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 )
+
+//go:embed all:builtin
+var builtinFS embed.FS
 
 // Item represents a single AI guidance item (Command, Rule, Template, or Workflow)
 type Item struct {
@@ -31,7 +36,45 @@ func NewRegistry() *Registry {
 }
 
 func (r *Registry) registerBuiltins() {
-	// TODO: Add actual built-in items when they are defined
+	fs.WalkDir(builtinFS, "builtin", func(path string, d fs.DirEntry, err error) error {
+		if err != nil || d.IsDir() {
+			return nil
+		}
+
+		name := d.Name()
+		if strings.HasSuffix(name, ".mdc") || strings.HasSuffix(name, ".md") {
+			id := strings.TrimSuffix(strings.TrimSuffix(name, ".mdc"), ".md")
+
+			dir := filepath.Dir(path)
+			var itemType string
+			switch filepath.Base(dir) {
+			case "rules":
+				itemType = "Rule"
+			case "commands":
+				itemType = "Command"
+			case "templates":
+				itemType = "Template"
+			case "workflows":
+				itemType = "Workflow"
+			default:
+				return nil
+			}
+
+			if _, exists := r.items[id]; !exists {
+				humanName := strings.ReplaceAll(id, "_", " ")
+
+				r.Add(&Item{
+					ID:          id,
+					Name:        humanName,
+					Type:        itemType,
+					Category:    "Builtin",
+					Description: "Built-in " + itemType,
+					Builtin:     true,
+				})
+			}
+		}
+		return nil
+	})
 }
 
 // Add registers an item
