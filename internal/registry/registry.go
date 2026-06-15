@@ -73,8 +73,9 @@ func (r *Registry) registerBuiltins() {
 		}
 
 		name := d.Name()
-		if strings.HasSuffix(name, ".mdc") || strings.HasSuffix(name, ".md") {
-			id := strings.TrimSuffix(strings.TrimSuffix(name, ".mdc"), ".md")
+		ext := filepath.Ext(name)
+		if strings.HasPrefix(ext, ".md") {
+			id := strings.TrimSuffix(name, ext)
 
 			dir := filepath.Dir(path)
 			var itemType string
@@ -197,8 +198,9 @@ func (r *Registry) DiscoverCustomItems(workspaceRoot string) error {
 				continue
 			}
 			name := entry.Name()
-			if strings.HasSuffix(name, ".mdc") || strings.HasSuffix(name, ".md") {
-				id := strings.TrimSuffix(strings.TrimSuffix(name, ".mdc"), ".md")
+			ext := filepath.Ext(name)
+			if strings.HasPrefix(ext, ".md") {
+				id := strings.TrimSuffix(name, ext)
 
 				family := ""
 				var content []byte
