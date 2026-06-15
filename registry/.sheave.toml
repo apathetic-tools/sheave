@@ -1,3 +1,5 @@
+active_providers = ["claude", "cursor", "gemini", "openai"]
+
 [providers.claude]
 deployment_method = "flat-combine"
 target_dir = ".claude"
@@ -11,3 +13,8 @@ target_dir = ".cursor"
 deployment_method = "memory"
 target_dir = ".gemini"
 filename = "GEMINI.md"
+
+[providers.openai]
+deployment_method = "memory"
+target_dir = ".openai"
+filename = "OPENAI.md"

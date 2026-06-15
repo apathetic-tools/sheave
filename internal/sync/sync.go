@@ -35,7 +35,15 @@ func SyncToIDE(projectRoot string, opts Options) (bool, error) {
 
 	hadChanges := false
 
-	for name, provider := range cfg.Providers {
+	for _, name := range cfg.ActiveProviders {
+		provider, ok := cfg.Providers[name]
+		if !ok {
+			if !opts.Quiet {
+				fmt.Printf("Warning: active_provider '%s' not found in providers map\n", name)
+			}
+			continue
+		}
+
 		var changed bool
 		var err error
 

@@ -25,11 +25,12 @@ type ProviderConfig struct {
 
 // Config represents the schema of .sheave.toml
 type Config struct {
-	Rules     Selection                 `toml:"rules,omitempty"`
-	Commands  Selection                 `toml:"commands,omitempty"`
-	Templates Selection                 `toml:"templates,omitempty"`
-	Workflows Selection                 `toml:"workflows,omitempty"`
-	Providers map[string]ProviderConfig `toml:"providers,omitempty"`
+	ActiveProviders []string                  `toml:"active_providers,omitempty"`
+	Rules           Selection                 `toml:"rules,omitempty"`
+	Commands        Selection                 `toml:"commands,omitempty"`
+	Templates       Selection                 `toml:"templates,omitempty"`
+	Workflows       Selection                 `toml:"workflows,omitempty"`
+	Providers       map[string]ProviderConfig `toml:"providers,omitempty"`
 }
 
 // GetConfigPath returns the path to the configuration file.
@@ -79,6 +80,9 @@ func Load(path string) (*Config, error) {
 	}
 
 	// 3. Merge configs
+	if len(userCfg.ActiveProviders) > 0 {
+		baseCfg.ActiveProviders = userCfg.ActiveProviders
+	}
 	if len(userCfg.Rules.Include) > 0 {
 		baseCfg.Rules.Include = userCfg.Rules.Include
 	}
