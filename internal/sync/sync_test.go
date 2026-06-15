@@ -14,7 +14,7 @@ func TestSyncToIDE(t *testing.T) {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	dirs := []string{filepath.Join(tmpDir, ".ai", "rules", "cursor"), filepath.Join(tmpDir, ".ai", "commands", "deep")}
+	dirs := []string{filepath.Join(tmpDir, ".ai", "rules", "cursor"), filepath.Join(tmpDir, ".ai", "skills", "deep")}
 	for _, dir := range dirs {
 		if err := os.MkdirAll(dir, 0755); err != nil {
 			t.Fatal(err)
@@ -44,7 +44,7 @@ Cursor specific content.
 	}
 
 	// 3. Command file (nested)
-	commandMdPath := filepath.Join(tmpDir, ".ai", "commands", "deep", "my_command.md")
+	commandMdPath := filepath.Join(tmpDir, ".ai", "skills", "deep", "my_command.md")
 	commandMdContent := "Command content.\n"
 	if err := os.WriteFile(commandMdPath, []byte(commandMdContent), 0644); err != nil {
 		t.Fatal(err)
@@ -81,9 +81,9 @@ Cursor specific content.
 	}
 
 	// Verify Cursor Commands
-	cursorCommandsDir := filepath.Join(tmpDir, ".cursor", "commands")
+	cursorCommandsDir := filepath.Join(tmpDir, ".cursor", "skills")
 	if _, err := os.Stat(filepath.Join(cursorCommandsDir, "deep", "my_command.md")); os.IsNotExist(err) {
-		t.Errorf("deep/my_command.md was not copied to .cursor/commands/deep/")
+		t.Errorf("deep/my_command.md was not copied to .cursor/skills/deep/")
 	}
 
 	// Verify Claude output (Modular deployment)
@@ -95,9 +95,9 @@ Cursor specific content.
 		t.Errorf("cursor/cursor_specific.md was not copied to .claude/rules")
 	}
 
-	claudeCommandsDir := filepath.Join(tmpDir, ".claude", "commands")
+	claudeCommandsDir := filepath.Join(tmpDir, ".claude", "skills")
 	if _, err := os.Stat(filepath.Join(claudeCommandsDir, "deep", "my_command.md")); os.IsNotExist(err) {
-		t.Errorf("deep/my_command.md was not copied to .claude/commands")
+		t.Errorf("deep/my_command.md was not copied to .claude/skills")
 	}
 
 	settingsFile := filepath.Join(tmpDir, ".claude", "settings.json")

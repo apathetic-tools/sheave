@@ -55,7 +55,7 @@ Sheave fundamentally manages four types of AI guidance:
 ### Builtins vs Custom Instructions
 
 - **Builtins**: Commands, Rules, Templates, and Workflows that are internally defined and shipped with Sheave. You can selectively enable them.
-- **Custom Instructions**: Your own project-specific guidance defined in the `.ai/` directory (e.g., `.ai/rules/`, `.ai/commands/`, `.ai/templates/`, `.ai/workflows/`).
+- **Custom Instructions**: Your own project-specific guidance defined in the `.ai/` directory (e.g., `.ai/rules/`, `.ai/skills/`, `.ai/templates/`, `.ai/workflows/`).
 
 ## Documentation
 

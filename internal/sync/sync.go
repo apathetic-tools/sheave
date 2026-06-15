@@ -31,7 +31,7 @@ func SyncToIDE(projectRoot string, opts Options) (bool, error) {
 	}
 
 	activeRules := reg.Resolve("Rule", cfg.Rules.Include, cfg.Rules.Exclude)
-	activeCommands := reg.Resolve("Command", cfg.Commands.Include, cfg.Commands.Exclude)
+	activeCommands := reg.Resolve("Skill", cfg.Commands.Include, cfg.Commands.Exclude)
 
 	hadChanges := false
 

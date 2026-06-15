@@ -130,7 +130,7 @@ Configure which IDE integrations to sync.
 **Options:**
 - `cursor` — Sync to Cursor (`.cursor/rules/` and `.cursor/commands/`)
 - `claude` — Sync to Claude Desktop (`.claude/`)
-- `generic` — Sync to generic AI integrations (`.ai/rules/`, `.ai/commands/`, `.ai/templates/`, `.ai/workflows/`)
+- `generic` — Sync to generic AI integrations (`.ai/rules/`, `.ai/skills/`, `.ai/templates/`, `.ai/workflows/`)
 
 **Type:** `dict[str, bool]`
 

@@ -158,7 +158,7 @@ generic = false  # Don't create .ai/ directories
 ### Custom Paths
 
 > [!NOTE]
-> Custom instructions (markdown files) placed in the root of your project under the `.ai/` directory (e.g., `.ai/rules/`, `.ai/commands/`, `.ai/templates/`, `.ai/workflows/`) are automatically discovered and enabled by default.
+> Custom instructions (markdown files) placed in the root of your project under the `.ai/` directory (e.g., `.ai/rules/`, `.ai/skills/`, `.ai/templates/`, `.ai/workflows/`) are automatically discovered and enabled by default.
 
 To point to custom directories outside of the default `.ai/` structure:
 

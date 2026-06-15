@@ -43,7 +43,7 @@ This interactive tool will optionally scaffold your `.ai/` directory and scan yo
 ### Step 2: Enable Guidance
 
 > [!NOTE]
-> By default, any custom instructions (markdown files) placed in the root of your project under the `.ai/` directory (e.g., `.ai/rules/`, `.ai/commands/`, `.ai/templates/`, `.ai/workflows/`) are automatically discovered and enabled when found.
+> By default, any custom instructions (markdown files) placed in the root of your project under the `.ai/` directory (e.g., `.ai/rules/`, `.ai/skills/`, `.ai/templates/`, `.ai/workflows/`) are automatically discovered and enabled when found.
 
 Enable specific builtins or items using the CLI:
 
@@ -92,7 +92,7 @@ sheave sync
 This creates or updates the appropriate configuration files for your IDE:
 - `.cursor/rules/` for Cursor
 - `.claude/` for Claude Desktop
-- `.ai/rules/`, `.ai/commands/`, `.ai/templates/`, `.ai/workflows/` for generic AI integrations
+- `.ai/rules/`, `.ai/skills/`, `.ai/templates/`, `.ai/workflows/` for generic AI integrations
 
 Sheave is configured entirely via a standalone `.sheave.toml` file. This file usually resides at the root of your project or inside the `.ai/` directory.
 

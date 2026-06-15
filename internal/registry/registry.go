@@ -85,8 +85,8 @@ func (r *Registry) registerBuiltins() {
 			switch baseType {
 			case "rules":
 				itemType = "Rule"
-			case "commands":
-				itemType = "Command"
+			case "skills":
+				itemType = "Skill"
 			case "templates":
 				itemType = "Template"
 			case "workflows":
@@ -188,7 +188,7 @@ func (r *Registry) List() []*Item {
 func (r *Registry) DiscoverCustomItems(workspaceRoot string) error {
 	dirs := map[string]string{
 		filepath.Join(workspaceRoot, ".ai", "rules"):     "Rule",
-		filepath.Join(workspaceRoot, ".ai", "commands"):  "Command",
+		filepath.Join(workspaceRoot, ".ai", "skills"):    "Skill",
 		filepath.Join(workspaceRoot, ".ai", "templates"): "Template",
 		filepath.Join(workspaceRoot, ".ai", "workflows"): "Workflow",
 	}

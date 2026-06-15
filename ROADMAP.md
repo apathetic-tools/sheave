@@ -46,7 +46,7 @@ instead of sheave
   - [x] Chunk 1: Directory scaffolding (ensure `.ai/`, `.cursor/`, `.claude/` structure)
   - [x] Chunk 2: Base Cursor rules sync (copy `.ai/rules/*.mdc` to `.cursor/rules/`)
   - [x] Chunk 3: Specific Cursor rules sync (copy `.ai/rules/cursor/*.mdc`)
-  - [x] Chunk 4: Cursor commands sync (copy `.ai/commands/*.md` to `.cursor/commands/`)
+  - [x] Chunk 4: Cursor commands sync (copy `.ai/skills/*.md` to `.cursor/commands/`)
   - [x] Chunk 5: Cursor cleanup (remove obsolete rules/commands)
   - [x] Chunk 6: Claude compilation (stitch `.mdc` bodies + `.ai/rules/claude/*.md` into `CLAUDE.md`)
   - [x] Dry-run mode

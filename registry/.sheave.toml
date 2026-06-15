@@ -10,7 +10,7 @@ type = "md"
 
 [providers.claude.skills]
 spread = "dir"
-path = "commands"
+path = "skills"
 ext = "md"
 type = "md"
 
@@ -33,7 +33,7 @@ target_dir = ".cursor"
 # commands: https://cursor.com/docs/skills
 [providers.cursor.skills]
 spread = "dir"
-path = "commands"
+path = "skills"
 ext = "md"
 type = "md"
 frontmatter = ["name", "description", "paths", "invocable", "metadata"]
