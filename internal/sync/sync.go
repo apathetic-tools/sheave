@@ -33,47 +33,30 @@ func SyncToIDE(projectRoot string, opts Options) (bool, error) {
 	activeRules := reg.Resolve("Rule", cfg.Rules.Include, cfg.Rules.Exclude)
 	activeCommands := reg.Resolve("Command", cfg.Commands.Include, cfg.Commands.Exclude)
 
-	cursorRulesDir := filepath.Join(projectRoot, ".cursor", "rules")
-	cursorCommandsDir := filepath.Join(projectRoot, ".cursor", "commands")
-	claudeDir := filepath.Join(projectRoot, ".claude")
-
-	if !opts.DryRun {
-		_ = os.MkdirAll(cursorRulesDir, 0755)
-		_ = os.MkdirAll(cursorCommandsDir, 0755)
-		_ = os.MkdirAll(claudeDir, 0755)
-	}
-
 	hadChanges := false
 
-	createdRules, changed, err := writeItems(activeRules, cursorRulesDir, ".mdc", projectRoot, opts)
-	if err != nil {
-		return false, err
-	}
-	hadChanges = hadChanges || changed
+	for name, provider := range cfg.Providers {
+		var changed bool
+		var err error
 
-	createdCommands, changed, err := writeItems(activeCommands, cursorCommandsDir, ".md", projectRoot, opts)
-	if err != nil {
-		return false, err
-	}
-	hadChanges = hadChanges || changed
+		switch provider.DeploymentMethod {
+		case "flat-combine":
+			changed, err = deployFlatCombine(provider, activeRules, activeCommands, projectRoot, opts)
+		case "folder-split-command-rules":
+			changed, err = deployFolderSplit(provider, activeRules, activeCommands, projectRoot, opts)
+		case "memory":
+			changed, err = deployMemory(provider, activeRules, activeCommands, projectRoot, opts)
+		default:
+			if !opts.Quiet {
+				fmt.Printf("Warning: unknown deployment_method '%s' for provider '%s'\n", provider.DeploymentMethod, name)
+			}
+		}
 
-	changed, err = removeOldFiles(cursorRulesDir, createdRules, projectRoot, opts)
-	if err != nil {
-		return false, err
+		if err != nil {
+			return false, fmt.Errorf("failed to sync provider %s: %w", name, err)
+		}
+		hadChanges = hadChanges || changed
 	}
-	hadChanges = hadChanges || changed
-
-	changed, err = removeOldFiles(cursorCommandsDir, createdCommands, projectRoot, opts)
-	if err != nil {
-		return false, err
-	}
-	hadChanges = hadChanges || changed
-
-	changed, err = generateClaudeFile(claudeDir, activeRules, activeCommands, projectRoot, opts)
-	if err != nil {
-		return false, err
-	}
-	hadChanges = hadChanges || changed
 
 	if !hadChanges && !opts.Quiet {
 		fmt.Println("No changes to make")
@@ -171,30 +154,4 @@ func extractContentBody(content []byte) string {
 	str := string(content)
 	re := regexp.MustCompile(`(?m)^---\s*\n(?:.*?\n)*?---\s*\n`)
 	return strings.TrimSpace(re.ReplaceAllString(str, ""))
-}
-
-func generateClaudeFile(claudeDir string, rules, commands []*registry.Item, projectRoot string, opts Options) (bool, error) {
-	var result strings.Builder
-
-	for _, item := range rules {
-		body := extractContentBody(item.Content)
-		if body != "" {
-			result.WriteString(fmt.Sprintf("# %s\n\n%s\n\n", item.Name, body))
-		}
-	}
-
-	for _, item := range commands {
-		body := extractContentBody(item.Content)
-		if body != "" {
-			result.WriteString(fmt.Sprintf("# %s\n\n%s\n\n", item.Name, body))
-		}
-	}
-
-	outputFile := filepath.Join(claudeDir, "CLAUDE.md")
-
-	if result.Len() == 0 {
-		return false, nil
-	}
-
-	return writeIfChanged(outputFile, []byte(result.String()), projectRoot, opts)
 }

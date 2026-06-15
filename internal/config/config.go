@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/apathetic-tools/sheave/registry"
 	"github.com/pelletier/go-toml/v2"
 )
 
@@ -15,12 +16,20 @@ type Selection struct {
 	Exclude []string `toml:"exclude,omitempty"`
 }
 
+// ProviderConfig represents a deployment target for AI
+type ProviderConfig struct {
+	DeploymentMethod string `toml:"deployment_method"`
+	TargetDir        string `toml:"target_dir"`
+	Filename         string `toml:"filename,omitempty"`
+}
+
 // Config represents the schema of .sheave.toml
 type Config struct {
-	Rules     Selection `toml:"rules,omitempty"`
-	Commands  Selection `toml:"commands,omitempty"`
-	Templates Selection `toml:"templates,omitempty"`
-	Workflows Selection `toml:"workflows,omitempty"`
+	Rules     Selection                 `toml:"rules,omitempty"`
+	Commands  Selection                 `toml:"commands,omitempty"`
+	Templates Selection                 `toml:"templates,omitempty"`
+	Workflows Selection                 `toml:"workflows,omitempty"`
+	Providers map[string]ProviderConfig `toml:"providers,omitempty"`
 }
 
 // GetConfigPath returns the path to the configuration file.
@@ -41,23 +50,68 @@ func GetConfigPath(projectRoot string) string {
 	return rootPath
 }
 
-// Load reads and parses the configuration file at the given path.
-// If the file does not exist, it returns an empty configuration.
+// Load reads and parses the configuration file at the given path, merging it with the defaults.
+// If the file does not exist, it returns the default configuration.
 func Load(path string) (*Config, error) {
+	// 1. Load Defaults
+	defaultBytes, err := registry.FS.ReadFile(".sheave.toml")
+	if err != nil {
+		return nil, fmt.Errorf("failed to read default config from registry: %w", err)
+	}
+
+	var baseCfg Config
+	if err := toml.Unmarshal(defaultBytes, &baseCfg); err != nil {
+		return nil, fmt.Errorf("failed to parse default TOML: %w", err)
+	}
+
+	// 2. Load User Config
 	b, err := os.ReadFile(path)
 	if err != nil {
 		if errors.Is(err, os.ErrNotExist) {
-			return &Config{}, nil
+			return &baseCfg, nil
 		}
-		return nil, fmt.Errorf("failed to read config file %s: %w", path, err)
+		return nil, fmt.Errorf("failed to read config file %s: %w", err)
 	}
 
-	var cfg Config
-	if err := toml.Unmarshal(b, &cfg); err != nil {
+	var userCfg Config
+	if err := toml.Unmarshal(b, &userCfg); err != nil {
 		return nil, fmt.Errorf("failed to parse TOML in %s: %w", path, err)
 	}
 
-	return &cfg, nil
+	// 3. Merge configs
+	if len(userCfg.Rules.Include) > 0 {
+		baseCfg.Rules.Include = userCfg.Rules.Include
+	}
+	if len(userCfg.Rules.Exclude) > 0 {
+		baseCfg.Rules.Exclude = userCfg.Rules.Exclude
+	}
+	if len(userCfg.Commands.Include) > 0 {
+		baseCfg.Commands.Include = userCfg.Commands.Include
+	}
+	if len(userCfg.Commands.Exclude) > 0 {
+		baseCfg.Commands.Exclude = userCfg.Commands.Exclude
+	}
+	if len(userCfg.Templates.Include) > 0 {
+		baseCfg.Templates.Include = userCfg.Templates.Include
+	}
+	if len(userCfg.Templates.Exclude) > 0 {
+		baseCfg.Templates.Exclude = userCfg.Templates.Exclude
+	}
+	if len(userCfg.Workflows.Include) > 0 {
+		baseCfg.Workflows.Include = userCfg.Workflows.Include
+	}
+	if len(userCfg.Workflows.Exclude) > 0 {
+		baseCfg.Workflows.Exclude = userCfg.Workflows.Exclude
+	}
+
+	if baseCfg.Providers == nil && len(userCfg.Providers) > 0 {
+		baseCfg.Providers = make(map[string]ProviderConfig)
+	}
+	for k, v := range userCfg.Providers {
+		baseCfg.Providers[k] = v
+	}
+
+	return &baseCfg, nil
 }
 
 // Save writes the configuration to the given path.

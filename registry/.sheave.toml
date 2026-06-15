@@ -1,0 +1,13 @@
+[providers.claude]
+deployment_method = "flat-combine"
+target_dir = ".claude"
+filename = "CLAUDE.md"
+
+[providers.cursor]
+deployment_method = "folder-split-command-rules"
+target_dir = ".cursor"
+
+[providers.gemini]
+deployment_method = "memory"
+target_dir = ".gemini"
+filename = "GEMINI.md"
