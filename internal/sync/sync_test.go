@@ -73,8 +73,8 @@ Cursor specific content.
 	if _, err := os.Stat(filepath.Join(cursorRulesDir, "base.mdc")); os.IsNotExist(err) {
 		t.Errorf("base.mdc was not copied to .cursor/rules")
 	}
-	if _, err := os.Stat(filepath.Join(cursorRulesDir, "cursor_cursor_specific.mdc")); os.IsNotExist(err) {
-		t.Errorf("cursor_cursor_specific.mdc was not copied to .cursor/rules")
+	if _, err := os.Stat(filepath.Join(cursorRulesDir, "cursor_specific.mdc")); os.IsNotExist(err) {
+		t.Errorf("cursor_specific.mdc was not copied to .cursor/rules")
 	}
 	if _, err := os.Stat(obsoleteFile); !os.IsNotExist(err) {
 		t.Errorf("obsolete.mdc was not removed from .cursor/rules")
@@ -82,8 +82,8 @@ Cursor specific content.
 
 	// Verify Cursor Commands
 	cursorCommandsDir := filepath.Join(tmpDir, ".cursor", "skills")
-	if _, err := os.Stat(filepath.Join(cursorCommandsDir, "deep_my_command.md")); os.IsNotExist(err) {
-		t.Errorf("deep_my_command.md was not copied to .cursor/skills/")
+	if _, err := os.Stat(filepath.Join(cursorCommandsDir, "my_command.md")); os.IsNotExist(err) {
+		t.Errorf("my_command.md was not copied to .cursor/skills/")
 	}
 
 	// Verify Claude output (Modular deployment)
@@ -91,13 +91,13 @@ Cursor specific content.
 	if _, err := os.Stat(filepath.Join(claudeRulesDir, "base.md")); os.IsNotExist(err) {
 		t.Errorf("base.md was not copied to .claude/rules")
 	}
-	if _, err := os.Stat(filepath.Join(claudeRulesDir, "cursor_cursor_specific.md")); os.IsNotExist(err) {
-		t.Errorf("cursor_cursor_specific.md was not copied to .claude/rules")
+	if _, err := os.Stat(filepath.Join(claudeRulesDir, "cursor_specific.md")); os.IsNotExist(err) {
+		t.Errorf("cursor_specific.md was not copied to .claude/rules")
 	}
 
 	claudeCommandsDir := filepath.Join(tmpDir, ".claude", "skills")
-	if _, err := os.Stat(filepath.Join(claudeCommandsDir, "deep_my_command.md")); os.IsNotExist(err) {
-		t.Errorf("deep_my_command.md was not copied to .claude/skills")
+	if _, err := os.Stat(filepath.Join(claudeCommandsDir, "my_command.md")); os.IsNotExist(err) {
+		t.Errorf("my_command.md was not copied to .claude/skills")
 	}
 
 	// We no longer generate empty stub files, so settings.json should not exist

@@ -65,14 +65,22 @@ func writeItems(items []*registry.Item, targetDir string, extension string, proj
 	created := make(map[string]bool)
 	hadChanges := false
 
+	idCounts := make(map[string]int)
+	if spread == "dir" {
+		for _, item := range items {
+			idCounts[item.ID]++
+		}
+	}
+
 	for _, item := range items {
 		filename := item.ID
 		if item.Family != "" {
 			if spread == "subdir" {
 				filename = filepath.Join(item.Family, item.ID)
-			} else {
-				// spread == "dir"
-				filename = strings.ReplaceAll(item.Family, "/", "_") + "_" + item.ID
+			} else if spread == "dir" && idCounts[item.ID] > 1 {
+				parts := strings.Split(item.Family, "/")
+				lastDir := parts[len(parts)-1]
+				filename = lastDir + "-" + item.ID
 			}
 		}
 		filename += extension
