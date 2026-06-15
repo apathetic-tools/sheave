@@ -20,24 +20,15 @@ Sheave provides preset rules, workflows, and commands for AI-powered IDE integra
 
 ### Installation
 
-```bash
-# Using poetry
-poetry add sheave
-
-# Using pip
-pip install sheave
-```
+*(Note: Installation instructions will be updated soon as Sheave transitions to a compiled Go binary).*
 
 ### Basic Usage
 
 ```bash
-# Enable specific presets (coming soon)
-sheave enable --rules code-quality --workflows testing
+# 1. Interactively initialize configuration and scaffold your .ai/ directory
+sheave init
 
-# List available presets
-sheave list
-
-# Apply presets to your project
+# 2. Sync your rules and commands to your IDE (.cursor/rules, etc.)
 sheave sync
 ```
 

@@ -14,26 +14,23 @@ Commands for managing AI guidance configuration and resolving rules.
 
 ### `sheave init`
 
-Initialize a new Sheave configuration file.
+Interactively initialize Sheave configuration and optionally scaffold the `.ai` directory. 
+The command scans the repository for known environment files (`go.mod`, `package.json`, etc.) and prompts you to enable built-in rules suited for your stack.
 
 ```bash
-sheave init [--config PATH] [--format toml|json]
+sheave init [--yes]
 ```
 
 **Options:**
-- `--config PATH` — Specify config file path (default: `.sheave.toml` or `pyproject.toml`)
-- `--format FORMAT` — Config file format: `toml` or `json` (default: `toml`)
+- `--yes, -y` — Automatically accept default prompts (scaffolds `.ai/` and configures it with `~*` custom matching only).
 
 **Examples:**
 ```bash
-# Create .sheave.toml
+# Start the interactive wizard
 sheave init
 
-# Add to pyproject.toml
-sheave init --config pyproject.toml
-
-# Create JSON config
-sheave init --format json
+# Non-interactive scaffolding
+sheave init -y
 ```
 
 ### `sheave enable`

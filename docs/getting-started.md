@@ -10,18 +10,12 @@ This guide will help you get up and running with Sheave in just a few minutes.
 
 ## Installation
 
-Sheave requires **Python 3.10 or higher**.
+Sheave is distributed as a standalone binary compiled in Go.
 
-### Using Poetry
-
-```bash
-poetry add sheave
-```
-
-### Using pip
+### Using Go
 
 ```bash
-pip install sheave
+go install github.com/apathetic-tools/sheave@latest
 ```
 
 ### Verify Installation
@@ -38,13 +32,13 @@ You should see the version number printed.
 
 ### Step 1: Initialize Configuration
 
-Create a configuration file in your project root:
+Run the interactive wizard to set up Sheave for your project:
 
 ```bash
 sheave init
 ```
 
-This creates a `.sheave.toml` file (or adds a `[tool.sheave]` section to your `pyproject.toml`).
+This interactive tool will optionally scaffold your `.ai/` directory and scan your project to recommend enabling standard rules (e.g. Go, Node, or Python standards) by generating a tailored `.sheave.toml` file.
 
 ### Step 2: Enable Guidance
 
@@ -100,28 +94,16 @@ This creates or updates the appropriate configuration files for your IDE:
 - `.claude/` for Claude Desktop
 - `.ai/rules/`, `.ai/commands/`, `.ai/templates/`, `.ai/workflows/` for generic AI integrations
 
-## Configuration File Format
-
-Sheave supports configuration in `pyproject.toml` or a standalone `.sheave.toml` file.
-
-### Using pyproject.toml
-
-```toml
-[tool.sheave]
-select = ["code-quality", "testing"]
-ignore = ["code-quality.E501"]
-workflows = ["feature-setup"]
-commands = ["generate-tests"]
-```
+Sheave is configured entirely via a standalone `.sheave.toml` file. This file usually resides at the root of your project or inside the `.ai/` directory.
 
 ### Using .sheave.toml
 
 ```toml
-[tool.sheave]
-select = ["code-quality", "testing"]
-ignore = ["code-quality.E501"]
-workflows = ["feature-setup"]
-commands = ["generate-tests"]
+[rules]
+include = ["~*", "#golang/*"]
+
+[workflows]
+include = ["~*", "#ci/*"]
 ```
 
 ## Example: Quick Setup
@@ -130,7 +112,7 @@ Here's a complete example for a Python project:
 
 ```bash
 # 1. Install Sheave
-poetry add sheave
+go install github.com/apathetic-tools/sheave@latest
 
 # 2. Initialize configuration
 sheave init
