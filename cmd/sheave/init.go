@@ -24,10 +24,10 @@ var initCmd = &cobra.Command{
 		}
 
 		cfg := &config.Config{
-			Rules:     config.Selection{Include: []string{"*"}},
-			Commands:  config.Selection{Include: []string{"*"}},
-			Templates: config.Selection{Include: []string{"*"}},
-			Workflows: config.Selection{Include: []string{"*"}},
+			Rules:     config.Selection{Include: []string{"~*"}},
+			Commands:  config.Selection{Include: []string{"~*"}},
+			Templates: config.Selection{Include: []string{"~*"}},
+			Workflows: config.Selection{Include: []string{"~*"}},
 		}
 
 		if err := cfg.Save(path); err != nil {
