@@ -1,11 +1,11 @@
 [rules]
-include = ['~*', '#golang/*', '#ci/*', '#quality/*']
+include = ['~*']
 
 [commands]
-include = ['~*', '#golang/*', '#ci/*', '#quality/*']
+include = ['~*']
 
 [templates]
-include = ['~*', '#golang/*', '#ci/*', '#quality/*']
+include = ['~*']
 
 [workflows]
-include = ['~*', '#golang/*', '#ci/*', '#quality/*']
+include = ['~*']

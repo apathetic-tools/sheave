@@ -3,6 +3,7 @@ package sync
 import (
 	"bytes"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -113,6 +114,9 @@ func writeIfChanged(dest string, newContent []byte, projectRoot string, opts Opt
 	}
 
 	if !opts.DryRun {
+		if err := os.MkdirAll(filepath.Dir(dest), 0755); err != nil {
+			return false, err
+		}
 		if err := os.WriteFile(dest, newContent, 0644); err != nil {
 			return false, err
 		}
@@ -134,30 +138,31 @@ func removeOldFiles(targetDir string, created map[string]bool, projectRoot strin
 		return false, nil
 	}
 
-	entries, err := os.ReadDir(targetDir)
-	if err != nil {
-		return false, err
-	}
-
 	hadChanges := false
-	for _, entry := range entries {
-		if entry.IsDir() {
-			continue
+	err := filepath.WalkDir(targetDir, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
 		}
-		file := filepath.Join(targetDir, entry.Name())
-		if !created[file] {
+		if d.IsDir() {
+			return nil
+		}
+		if !created[path] {
 			if !opts.DryRun {
-				_ = os.Remove(file)
+				_ = os.Remove(path)
 			}
 			hadChanges = true
 			if !opts.Quiet {
-				rel, _ := filepath.Rel(projectRoot, file)
+				rel, _ := filepath.Rel(projectRoot, path)
 				if rel == "" {
-					rel = file
+					rel = path
 				}
 				fmt.Printf("Removed old file: %s\n", rel)
 			}
 		}
+		return nil
+	})
+	if err != nil {
+		return false, err
 	}
 	return hadChanges, nil
 }

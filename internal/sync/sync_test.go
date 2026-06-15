@@ -15,23 +15,15 @@ func TestSyncToIDE(t *testing.T) {
 	}
 	defer os.RemoveAll(tmpDir)
 
-	// Create test files in .ai/ directory
-	aiRulesDir := filepath.Join(tmpDir, ".ai", "rules")
-	aiCursorDir := filepath.Join(aiRulesDir, "cursor")
-	aiClaudeDir := filepath.Join(aiRulesDir, "claude")
-	aiCommandsDir := filepath.Join(tmpDir, ".ai", "commands")
-	cursorRulesDir := filepath.Join(tmpDir, ".cursor", "rules")
-	cursorCommandsDir := filepath.Join(tmpDir, ".cursor", "commands")
-
-	dirs := []string{aiCursorDir, aiClaudeDir, aiCommandsDir, cursorRulesDir, cursorCommandsDir}
+	dirs := []string{filepath.Join(tmpDir, ".ai", "rules", "cursor"), filepath.Join(tmpDir, ".ai", "commands", "deep")}
 	for _, dir := range dirs {
 		if err := os.MkdirAll(dir, 0755); err != nil {
 			t.Fatal(err)
 		}
 	}
 
-	// 1. Base MDC file
-	baseMdcPath := filepath.Join(aiRulesDir, "base.mdc")
+	// 1. Base MDC file (flat)
+	baseMdcPath := filepath.Join(tmpDir, ".ai", "rules", "base.mdc")
 	baseMdcContent := `---
 description: This is a base rule
 ---
@@ -41,8 +33,8 @@ Base rule content.
 		t.Fatal(err)
 	}
 
-	// 2. Cursor specific MDC file
-	cursorMdcPath := filepath.Join(aiCursorDir, "cursor_specific.mdc")
+	// 2. Cursor specific MDC file (nested)
+	cursorMdcPath := filepath.Join(tmpDir, ".ai", "rules", "cursor", "cursor_specific.mdc")
 	cursorMdcContent := `---
 description: Cursor specific
 ---
@@ -52,21 +44,18 @@ Cursor specific content.
 		t.Fatal(err)
 	}
 
-	// 3. Claude specific MD file
-	claudeMdPath := filepath.Join(aiClaudeDir, "claude_specific.md")
-	claudeMdContent := "Claude specific content.\n"
-	if err := os.WriteFile(claudeMdPath, []byte(claudeMdContent), 0644); err != nil {
-		t.Fatal(err)
-	}
-
-	// 4. Command file
-	commandMdPath := filepath.Join(aiCommandsDir, "my_command.md")
+	// 3. Command file (nested)
+	commandMdPath := filepath.Join(tmpDir, ".ai", "commands", "deep", "my_command.md")
 	commandMdContent := "Command content.\n"
 	if err := os.WriteFile(commandMdPath, []byte(commandMdContent), 0644); err != nil {
 		t.Fatal(err)
 	}
 
-	// 5. Obsolete file in .cursor/rules/
+	// 4. Obsolete file in .cursor/rules/
+	cursorRulesDir := filepath.Join(tmpDir, ".cursor", "rules")
+	if err := os.MkdirAll(cursorRulesDir, 0755); err != nil {
+		t.Fatal(err)
+	}
 	obsoleteFile := filepath.Join(cursorRulesDir, "obsolete.mdc")
 	if err := os.WriteFile(obsoleteFile, []byte("obsolete"), 0644); err != nil {
 		t.Fatal(err)
@@ -85,16 +74,17 @@ Cursor specific content.
 	if _, err := os.Stat(filepath.Join(cursorRulesDir, "base.mdc")); os.IsNotExist(err) {
 		t.Errorf("base.mdc was not copied to .cursor/rules")
 	}
-	if _, err := os.Stat(filepath.Join(cursorRulesDir, "cursor_specific.mdc")); os.IsNotExist(err) {
-		t.Errorf("cursor_specific.mdc was not copied to .cursor/rules")
+	if _, err := os.Stat(filepath.Join(cursorRulesDir, "cursor", "cursor_specific.mdc")); os.IsNotExist(err) {
+		t.Errorf("cursor/cursor_specific.mdc was not copied to .cursor/rules/cursor/")
 	}
 	if _, err := os.Stat(obsoleteFile); !os.IsNotExist(err) {
 		t.Errorf("obsolete.mdc was not removed from .cursor/rules")
 	}
 
 	// Verify Cursor Commands
-	if _, err := os.Stat(filepath.Join(cursorCommandsDir, "my_command.md")); os.IsNotExist(err) {
-		t.Errorf("my_command.md was not copied to .cursor/commands")
+	cursorCommandsDir := filepath.Join(tmpDir, ".cursor", "commands")
+	if _, err := os.Stat(filepath.Join(cursorCommandsDir, "deep", "my_command.md")); os.IsNotExist(err) {
+		t.Errorf("deep/my_command.md was not copied to .cursor/commands/deep/")
 	}
 
 	// Verify Claude output
@@ -104,13 +94,17 @@ Cursor specific content.
 		t.Fatalf("Failed to read CLAUDE.md: %v", err)
 	}
 
-	expectedClaude := `# Base
+	expectedClaude := `# base
 
 Base rule content.
 
-# Claude Specific
+# cursor/cursor specific
 
-Claude specific content.
+Cursor specific content.
+
+# deep/my command
+
+Command content.
 
 `
 	// Handle potential line ending differences

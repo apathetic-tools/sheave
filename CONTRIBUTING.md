@@ -1,143 +1,49 @@
 # 🧩 Contributing Guide
 
 Thanks for your interest in contributing to **Sheave** — AI guidance presets for agentic IDE integrations.  
-This guide explains how to set up your environment, run checks, and safely contribute code.
 
 ---
 
-## 🐍 Supported Python Versions
+## 🏗️ Project Structure
 
-Sheave targets **Python 3.10+**.
-That keeps compatibility with Ubuntu 22.04 (the baseline CI OS) while staying modern.
-See the [decision record #4](DECISIONS.md#dec04) for background on this choice.
+Sheave is written in Go. Understanding the directory layout is crucial for contributing:
 
-> The build itself has **no runtime dependencies** — only dev tools use Poetry.
+- **/cmd**: Contains the main application entrypoints (e.g., `cmd/sheave`). This is where the CLI commands are defined.
+- **/internal**: Contains the core application logic (config loading, syncing, registry management). Code here is private and cannot be imported by other Go projects.
+- **/registry**: Contains the **built-in assets** (rules, commands, templates, workflows). **This is the ONLY directory whose contents are packaged directly into the binary distribution** (via Go's `//go:embed` feature).
+
+### ⚠️ Note on `.ai` and `.sheave.toml`
+You will see `.ai/` folders and `.sheave.toml` files at the root of this repository. **These are for the development of Sheave itself.** They provide AI guidance to contributors working on the Sheave codebase. 
+
+**They are NOT part of the binary distribution.** When users install Sheave, they do not get these files. If you want to add a built-in rule that ships to users, you must add it to the `/registry/` folder.
 
 ---
 
 ## 🧰 Setting Up the Environment
 
-We use **[Poetry](https://python-poetry.org/)** for dependency and task management.
+Sheave requires **Go 1.21+**.
 
-### 1️⃣ Install Poetry
-
-```bash
-curl -sSL https://install.python-poetry.org | python3 -
-poetry --version
-```
-
-If Poetry isn’t on your `PATH`, add it to your shell configuration (usually `~/.bashrc` or `~/.zshrc`):
+### 1️⃣ Build the Project
 
 ```bash
-export PATH="$HOME/.local/bin:$PATH"
+go build ./...
 ```
 
-### 2️⃣ Install Dependencies
+### 2️⃣ Run Tests
 
 ```bash
-poetry install --with dev
+go test ./...
 ```
-
-This creates an isolated virtual environment with Ruff, Mypy, pytest, and Poe tasks.
-
----
-
-## ⚙️ Development Commands
-
-All key workflows are defined in **`[tool.poe.tasks]`** inside `pyproject.toml`.
-
-| Command | Description |
-|----------|-------------|
-| `poetry run poe check:fix` | Auto-fix issues, re-format, type-check, and re-test. |
-| `poetry run poe check` | Run linting (`ruff`), type checks (`mypy`), and tests (`pytest`). |
-| `poetry run poe fix` | Run all auto-fixers (`ruff`). |
-| `poetry run poe build:script` | Bundle the project into a single portable script in `bin/`. |
-
-Example workflow:
-
-```bash
-# Auto-fix & re-check
-poetry run poe check:fix
-```
-
----
-
-## 🔗 Pre-commit Hook
-
-Pre-commit is configured to run **`poe fix`** on each commit,  
-and **`poe check`** before every push.  
-This keeps your local commits tidy and ensures CI stays green.
-
-Install the hook once:
-
-```bash
-poetry run pre-commit install --install-hooks
-poetry run pre-commit install --hook-type pre-push
-```
-
-If any linter, type check, or test fails, the commit is blocked. It may have auto-fixed the problem, try commiting again before troubleshooting.
-
-### 🧩 Fixing the `setlocale` Warning
-
-If your terminal or Git log shows:
-
-```
-bash: warning: setlocale: LC_ALL: cannot change locale (en_US.UTF-8)
-```
-
-it means your system doesn’t have the `en_US.UTF-8` locale generated.
-
-Run the following commands in your terminal:
-
-```bash
-sudo locale-gen en_US.UTF-8
-sudo update-locale LANG=en_US.UTF-8
-```
-
-Then restart your shell or VS Code terminal.
-
----
-
-## 🧪 Testing
-
-Run the test suite directly:
-
-```bash
-poetry run poe test
-```
-
-Pytest will discover all files in `tests/` automatically.
-
----
-
-## 📦 Building and Publishing (for maintainers)
-
-Serger ships two forms:
-
-| Target | Command | Output |
-|---------|----------|--------|
-| **Single-file script** | `poetry run poe build:script` | Creates `dist/serger.py` |
-| **PyPI package** | `poetry build && poetry publish` | Builds and uploads wheel & sdist |
-
-To publish:
-
-```bash
-poetry build
-poetry publish --username __token__ --password <your-pypi-token>
-```
-
-> Verify the package on [Test PyPI](https://test.pypi.org/) before publishing live.
 
 ---
 
 ## 🪶 Contribution Rules
 
-- Follow [PEP 8](https://peps.python.org/pep-0008/) (enforced via Ruff).  
-- Keep the **core script dependency-free** — dev tooling lives only in `pyproject.toml`’s `dev` group.  
-- Run `poetry run poe check` before committing.  
+- Keep the **core logic** inside `/internal`.
+- Run `go fmt ./...` and `go test ./...` before committing.
 - Open PRs against the **`main`** branch.  
 - Be kind: small tools should have small egos.
 
 ---
 
-**Thank you for helping keep sheave tiny, dependency-free, and delightful.**
+**Thank you for helping keep Sheave tiny, fast, and delightful.**

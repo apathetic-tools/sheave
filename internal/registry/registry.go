@@ -73,11 +73,16 @@ func (r *Registry) registerBuiltins() {
 		name := d.Name()
 		ext := filepath.Ext(name)
 		if strings.HasPrefix(ext, ".md") {
-			id := strings.TrimSuffix(name, ext)
+			// Compute ID as the path relative to the root "."
+			// e.g. path="rules/frontend/react.md" -> "rules/frontend/react"
+			relPath := strings.TrimSuffix(path, ext)
 
-			dir := filepath.Dir(path)
+			// The first component of the path determines the type
+			parts := strings.Split(filepath.ToSlash(path), "/")
+			baseType := parts[0]
+
 			var itemType string
-			switch filepath.Base(dir) {
+			switch baseType {
 			case "rules":
 				itemType = "Rule"
 			case "commands":
@@ -88,6 +93,13 @@ func (r *Registry) registerBuiltins() {
 				itemType = "Workflow"
 			default:
 				return nil
+			}
+
+			// ID should not include the baseType folder
+			id := relPath
+			if len(parts) > 1 {
+				id = strings.Join(parts[1:], "/")
+				id = strings.TrimSuffix(id, ext)
 			}
 
 			var content []byte
@@ -186,23 +198,21 @@ func (r *Registry) DiscoverCustomItems(workspaceRoot string) error {
 			continue
 		}
 
-		entries, err := os.ReadDir(dir)
-		if err != nil {
-			return err
-		}
-
-		for _, entry := range entries {
-			if entry.IsDir() {
-				continue
+		err := filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+			if err != nil || d.IsDir() {
+				return nil
 			}
-			name := entry.Name()
+
+			name := d.Name()
 			ext := filepath.Ext(name)
 			if strings.HasPrefix(ext, ".md") {
-				id := strings.TrimSuffix(name, ext)
+				// Compute relative path from the type dir
+				relPath, _ := filepath.Rel(dir, path)
+				id := filepath.ToSlash(strings.TrimSuffix(relPath, ext))
 
 				family := ""
 				var content []byte
-				if b, err := os.ReadFile(filepath.Join(dir, name)); err == nil {
+				if b, err := os.ReadFile(path); err == nil {
 					content = b
 					fmID, fmFamily := parseFrontmatter(b)
 					if fmID != "" {
@@ -211,7 +221,6 @@ func (r *Registry) DiscoverCustomItems(workspaceRoot string) error {
 					family = fmFamily
 				}
 
-				// Local items overwrite in the customs map
 				humanName := strings.ReplaceAll(id, "_", " ")
 
 				r.AddCustom(&Item{
@@ -225,6 +234,10 @@ func (r *Registry) DiscoverCustomItems(workspaceRoot string) error {
 					Content:     content,
 				})
 			}
+			return nil
+		})
+		if err != nil {
+			return err
 		}
 	}
 	return nil
