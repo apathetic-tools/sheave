@@ -1,20 +1,123 @@
 active_providers = ["claude", "cursor", "gemini", "openai"]
 
 [providers.claude]
-deployment_method = "flat-combine"
 target_dir = ".claude"
-filename = "CLAUDE.md"
+[providers.claude.rules]
+spread = "dir"
+path = "rules"
+ext = "md"
+type = "md"
+
+[providers.claude.skills]
+spread = "dir"
+path = "commands"
+ext = "md"
+type = "md"
+
+[providers.claude.settings]
+spread = "file"
+path = "settings.json"
+type = "json"
+flavor = "claude"
+
+[providers.claude.main]
+spread = "file"
+path = "CLAUDE.md"
+type = "md"
+flavour = ["catchall"]
+
 
 [providers.cursor]
-deployment_method = "folder-split-command-rules"
 target_dir = ".cursor"
 
+# commands: https://cursor.com/docs/skills
+[providers.cursor.skills]
+spread = "dir"
+path = "commands"
+ext = "md"
+type = "md"
+frontmatter = ["name", "description", "paths", "invocable", "metadata"]
+
+[providers.cursor.skills.name]
+required = true
+
+[providers.cursor.skills.description]
+required = true
+
+[providers.cursor.skills.invocable]
+name = "disable-model-invocation"
+
+[providers.cursor.skills.metadata]
+type = "kv"
+
+# rules: https://cursor.com/docs/rules
+[providers.cursor.rules]
+spread = "dir"
+path = "rules"
+ext = "mdc"
+type = "md"
+frontmatter = ["description", "alwaysApply"]
+
+# hooks: https://cursor.com/docs/hooks
+[providers.cursor.hooks]
+spread = "file"
+path = "hooks.json"
+type = "json"
+flavor = "cursor"
+
+# mcp: https://cursor.com/docs/mcp
+[providers.cursor.mcp]
+spread = "file"
+path = "mcp.json"
+type = "json"
+flavor = "cursor"
+
+[providers.cursor.environment]
+spread = "file"
+path = "environment.json"
+type = "json"
+flavor = "cursor"
+
+[providers.cursor.ide]
+spread = "file"
+path = "ide.json"
+type = "json"
+flavor = "cursor"
+
+[providers.cursor.ignore]
+spread = "file"
+path = ".ignorecursor"
+type = "dot"
+
+# catchall: https://cursor.com/docs/rules#agentsmd
+[providers.cursor.main]
+spread = "file"
+path = "AGENTS.md"
+type = "md"
+flavour = ["catchall"]
+
+
 [providers.gemini]
-deployment_method = "memory"
 target_dir = ".gemini"
-filename = "GEMINI.md"
+
+[providers.gemini.settings]
+spread = "file"
+path = "settings.json"
+type = "json"
+flavor = "gemini"
+
+[providers.gemini.main]
+spread = "file"
+path = "GEMINI.md"
+type = "md"
+flavour = ["catchall", "memory"]
+
 
 [providers.openai]
-deployment_method = "memory"
 target_dir = ".openai"
-filename = "OPENAI.md"
+
+[providers.openai.main]
+spread = "file"
+path = "OPENAI.md"
+type = "md"
+flavour = ["catchall", "memory"]

@@ -57,6 +57,9 @@ instead of sheave
   - [ ] Generate command files
   - [ ] Handle item dependencies
   - [ ] Merge multiple items intelligently
+  - [ ] Implement Frontmatter validation and generation from `.sheave.toml` definitions
+  - [ ] Implement generator generation for exotic components like `mcp.json`, `environment.json`
+  - [ ] Expand and implement dynamic flavor processing for `spread="file"` aggregations
 
 ### Phase 3: Item Library (v0.3.0)
 - [ ] Rule items
@@ -77,6 +80,9 @@ instead of sheave
   - [ ] Format code command
   - [ ] Create docs command
   - [ ] Run checks command
+- [ ] Agent items (Specialized personas)
+- [ ] Skill items (Context-aware tools)
+- [ ] Settings profiles (Allowlists/denylists for AI capabilities)
 
 ### Phase 4: Advanced Features (v0.4.0)
 - [ ] Per-file configuration

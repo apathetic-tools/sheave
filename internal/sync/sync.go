@@ -47,18 +47,7 @@ func SyncToIDE(projectRoot string, opts Options) (bool, error) {
 		var changed bool
 		var err error
 
-		switch provider.DeploymentMethod {
-		case "flat-combine":
-			changed, err = deployFlatCombine(provider, activeRules, activeCommands, projectRoot, opts)
-		case "folder-split-command-rules":
-			changed, err = deployFolderSplit(provider, activeRules, activeCommands, projectRoot, opts)
-		case "memory":
-			changed, err = deployMemory(provider, activeRules, activeCommands, projectRoot, opts)
-		default:
-			if !opts.Quiet {
-				fmt.Printf("Warning: unknown deployment_method '%s' for provider '%s'\n", provider.DeploymentMethod, name)
-			}
-		}
+		changed, err = deployDataDriven(provider, activeRules, activeCommands, projectRoot, opts)
 
 		if err != nil {
 			return false, fmt.Errorf("failed to sync provider %s: %w", name, err)

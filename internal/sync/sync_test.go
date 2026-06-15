@@ -3,7 +3,6 @@ package sync
 import (
 	"os"
 	"path/filepath"
-	"strings"
 	"testing"
 )
 
@@ -87,30 +86,33 @@ Cursor specific content.
 		t.Errorf("deep/my_command.md was not copied to .cursor/commands/deep/")
 	}
 
-	// Verify Claude output
+	// Verify Claude output (Modular deployment)
+	claudeRulesDir := filepath.Join(tmpDir, ".claude", "rules")
+	if _, err := os.Stat(filepath.Join(claudeRulesDir, "base.md")); os.IsNotExist(err) {
+		t.Errorf("base.md was not copied to .claude/rules")
+	}
+	if _, err := os.Stat(filepath.Join(claudeRulesDir, "cursor", "cursor_specific.md")); os.IsNotExist(err) {
+		t.Errorf("cursor/cursor_specific.md was not copied to .claude/rules")
+	}
+
+	claudeCommandsDir := filepath.Join(tmpDir, ".claude", "commands")
+	if _, err := os.Stat(filepath.Join(claudeCommandsDir, "deep", "my_command.md")); os.IsNotExist(err) {
+		t.Errorf("deep/my_command.md was not copied to .claude/commands")
+	}
+
+	settingsFile := filepath.Join(tmpDir, ".claude", "settings.json")
+	if _, err := os.Stat(settingsFile); os.IsNotExist(err) {
+		t.Errorf("settings.json was not generated in .claude")
+	}
+
 	claudeFile := filepath.Join(tmpDir, ".claude", "CLAUDE.md")
 	claudeContent, err := os.ReadFile(claudeFile)
 	if err != nil {
 		t.Fatalf("Failed to read CLAUDE.md: %v", err)
 	}
 
-	expectedClaude := `# base
-
-Base rule content.
-
-# cursor/cursor specific
-
-Cursor specific content.
-
-# deep/my command
-
-Command content.
-
-`
-	// Handle potential line ending differences
-	actual := strings.ReplaceAll(string(claudeContent), "\r\n", "\n")
-	if actual != expectedClaude {
-		t.Errorf("CLAUDE.md content mismatch.\nExpected:\n%s\nGot:\n%s", expectedClaude, actual)
+	if len(claudeContent) > 0 {
+		t.Errorf("Expected CLAUDE.md to be empty, got %d bytes", len(claudeContent))
 	}
 
 	// Test a second run (should be no changes)

@@ -16,11 +16,39 @@ type Selection struct {
 	Exclude []string `toml:"exclude,omitempty"`
 }
 
+type FieldProp struct {
+	Required bool   `toml:"required,omitempty"`
+	Name     string `toml:"name,omitempty"`
+	Type     string `toml:"type,omitempty"`
+}
+
+type ComponentConfig struct {
+	Spread      string   `toml:"spread"`
+	Path        string   `toml:"path"`
+	Ext         string   `toml:"ext,omitempty"`
+	Type        string   `toml:"type,omitempty"`
+	Flavor      any      `toml:"flavor,omitempty"`
+	Flavour     any      `toml:"flavour,omitempty"`
+	Frontmatter []string `toml:"frontmatter,omitempty"`
+
+	Name        *FieldProp `toml:"name,omitempty"`
+	Description *FieldProp `toml:"description,omitempty"`
+	Invocable   *FieldProp `toml:"invocable,omitempty"`
+	Metadata    *FieldProp `toml:"metadata,omitempty"`
+}
+
 // ProviderConfig represents a deployment target for AI
 type ProviderConfig struct {
-	DeploymentMethod string `toml:"deployment_method"`
-	TargetDir        string `toml:"target_dir"`
-	Filename         string `toml:"filename,omitempty"`
+	TargetDir   string           `toml:"target_dir"`
+	Rules       *ComponentConfig `toml:"rules,omitempty"`
+	Skills      *ComponentConfig `toml:"skills,omitempty"`
+	Settings    *ComponentConfig `toml:"settings,omitempty"`
+	Main        *ComponentConfig `toml:"main,omitempty"`
+	Hooks       *ComponentConfig `toml:"hooks,omitempty"`
+	MCP         *ComponentConfig `toml:"mcp,omitempty"`
+	Environment *ComponentConfig `toml:"environment,omitempty"`
+	IDE         *ComponentConfig `toml:"ide,omitempty"`
+	Ignore      *ComponentConfig `toml:"ignore,omitempty"`
 }
 
 // Config represents the schema of .sheave.toml
@@ -71,7 +99,7 @@ func Load(path string) (*Config, error) {
 		if errors.Is(err, os.ErrNotExist) {
 			return &baseCfg, nil
 		}
-		return nil, fmt.Errorf("failed to read config file %s: %w", err)
+		return nil, fmt.Errorf("failed to read config file %s: %w", path, err)
 	}
 
 	var userCfg Config
