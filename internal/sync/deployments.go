@@ -248,56 +248,69 @@ func sortedKeys(m map[string]bool) []string {
 }
 
 func generateItemContent(item *registry.Item, comp *config.ComponentConfig) ([]byte, error) {
-	if comp == nil || len(comp.Frontmatter) == 0 {
+	if comp == nil {
 		return item.Content, nil
 	}
 
 	body := extractContentBody(item.Content)
 
-	// Extract existing frontmatter
 	existingFM := make(map[string]any)
 	str := string(item.Content)
+	hasFrontmatter := false
 	if strings.HasPrefix(str, "---\n") || strings.HasPrefix(str, "---\r\n") {
 		start := strings.Index(str, "\n") + 1
 		end := strings.Index(str[start:], "\n---")
 		if end != -1 {
 			yamlStr := str[start : start+end]
 			_ = yaml.Unmarshal([]byte(yamlStr), &existingFM)
+			hasFrontmatter = true
 		}
 	}
 
 	newFM := make(map[string]any)
-	for _, field := range comp.Frontmatter {
-		var prop *config.FieldProp
-		switch field {
-		case "name":
-			prop = comp.Name
-		case "description":
-			prop = comp.Description
-		case "invocable":
-			prop = comp.Invocable
-		case "metadata":
-			prop = comp.Metadata
-		}
 
-		val, exists := existingFM[field]
-		if !exists {
-			if field == "name" {
-				val = item.Name
-			} else if field == "description" {
-				val = item.Description
-			} else if prop != nil && prop.Name != "" {
-				val = prop.Name
+	if len(comp.Frontmatter) > 0 {
+		for _, field := range comp.Frontmatter {
+			var prop *config.FieldProp
+			switch field {
+			case "name":
+				prop = comp.Name
+			case "description":
+				prop = comp.Description
+			case "invocable":
+				prop = comp.Invocable
+			case "metadata":
+				prop = comp.Metadata
+			}
+
+			val, exists := existingFM[field]
+			if !exists {
+				if field == "name" {
+					val = item.Name
+				} else if field == "description" {
+					val = item.Description
+				} else if prop != nil && prop.Name != "" {
+					val = prop.Name
+				}
+			}
+
+			if val != nil && val != "" {
+				newFM[field] = val
 			}
 		}
-
-		if val != nil && val != "" {
-			newFM[field] = val
+	} else {
+		if !hasFrontmatter {
+			return item.Content, nil
+		}
+		for k, v := range existingFM {
+			if !strings.HasPrefix(k, "sheave-") {
+				newFM[k] = v
+			}
 		}
 	}
 
 	if len(newFM) == 0 {
-		return item.Content, nil
+		return []byte(body), nil
 	}
 
 	fmBytes, err := yaml.Marshal(newFM)

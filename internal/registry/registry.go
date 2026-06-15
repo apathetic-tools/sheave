@@ -4,6 +4,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -185,6 +186,12 @@ func (r *Registry) List() []*Item {
 	for _, i := range merged {
 		result = append(result, i)
 	}
+	sort.Slice(result, func(i, j int) bool {
+		if result[i].Family != result[j].Family {
+			return result[i].Family < result[j].Family
+		}
+		return result[i].ID < result[j].ID
+	})
 	return result
 }
 

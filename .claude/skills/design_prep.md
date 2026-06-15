@@ -1,6 +1,3 @@
----
-sheave-id: prep
----
 # prep
 
 Planning/discussion session. Answer questions, summarize, recommend. **Do NOT implement.**
@@ -20,4 +17,3 @@ Planning/discussion session. Answer questions, summarize, recommend. **Do NOT im
 - Discussion mode - no code changes, edits, or tool executions
 - May explore codebase, read files, search to answer
 - Only proceed when explicitly asked in future prompt
-

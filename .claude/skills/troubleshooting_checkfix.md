@@ -1,6 +1,3 @@
----
-sheave-id: checkfix
----
 # Check and Fix lint and test errors
 
 ## Behavior

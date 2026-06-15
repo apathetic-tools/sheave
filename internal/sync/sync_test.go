@@ -106,14 +106,10 @@ Cursor specific content.
 		t.Errorf("settings.json was incorrectly generated in .claude")
 	}
 
+	// We no longer generate empty catchall files if they don't exist
 	claudeFile := filepath.Join(tmpDir, ".claude", "CLAUDE.md")
-	claudeContent, err := os.ReadFile(claudeFile)
-	if err != nil {
-		t.Fatalf("Failed to read CLAUDE.md: %v", err)
-	}
-
-	if len(claudeContent) > 0 {
-		t.Errorf("Expected CLAUDE.md to be empty, got %d bytes", len(claudeContent))
+	if _, err := os.Stat(claudeFile); !os.IsNotExist(err) {
+		t.Errorf("CLAUDE.md was incorrectly generated in .claude")
 	}
 
 	// Test a second run (should be no changes)

@@ -1,7 +1,3 @@
----
-sheave-id: ci
-sheave-family: troubleshooting
----
 # ci
 
 We have a CI failure. Use the CI CLI (e.g. `gh`) to check CI status, view failing runs, and examine build errors.
