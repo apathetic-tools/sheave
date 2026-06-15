@@ -1,6 +1,7 @@
 ---
-sheave-id: checkfix
-sheave-family: troubleshooting
+description: Built-in Skill
+invocable: disable-model-invocation
+name: checkfix
 ---
 # Check and Fix lint and test errors
 

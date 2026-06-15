@@ -28,7 +28,7 @@ var showCmd = &cobra.Command{
 		_ = reg.DiscoverCustomItems(cwd)
 
 		activeRules := reg.Resolve("Rule", cfg.Rules.Include, cfg.Rules.Exclude)
-		activeCommands := reg.Resolve("Command", cfg.Commands.Include, cfg.Commands.Exclude)
+		activeCommands := reg.Resolve("Skill", cfg.Skills.Include, cfg.Skills.Exclude)
 		activeTemplates := reg.Resolve("Template", cfg.Templates.Include, cfg.Templates.Exclude)
 		activeWorkflows := reg.Resolve("Workflow", cfg.Workflows.Include, cfg.Workflows.Exclude)
 
@@ -50,7 +50,7 @@ var showCmd = &cobra.Command{
 		}
 
 		printGroup("Rule", activeRules)
-		printGroup("Command", activeCommands)
+		printGroup("Skill", activeCommands)
 		printGroup("Template", activeTemplates)
 		printGroup("Workflow", activeWorkflows)
 

@@ -43,7 +43,7 @@ var checkCmd = &cobra.Command{
 		}
 
 		checkSelection(cfg.Rules, "Rule")
-		checkSelection(cfg.Commands, "Command")
+		checkSelection(cfg.Skills, "Skill")
 		checkSelection(cfg.Templates, "Template")
 		checkSelection(cfg.Workflows, "Workflow")
 

@@ -95,22 +95,26 @@ func (r *Registry) registerBuiltins() {
 				return nil
 			}
 
-			// ID should not include the baseType folder
+			// ID and Family inference from directory structure
 			id := relPath
-			if len(parts) > 1 {
-				id = strings.Join(parts[1:], "/")
-				id = strings.TrimSuffix(id, ext)
+			family := ""
+			if len(parts) > 2 {
+				family = strings.Join(parts[1:len(parts)-1], "/")
+				id = strings.TrimSuffix(parts[len(parts)-1], ext)
+			} else if len(parts) == 2 {
+				id = strings.TrimSuffix(parts[1], ext)
 			}
 
 			var content []byte
-			family := ""
 			if b, err := fs.ReadFile(sheaveregistry.FS, path); err == nil {
 				content = b
 				fmID, fmFamily := parseFrontmatter(b)
 				if fmID != "" {
 					id = fmID
 				}
-				family = fmFamily
+				if fmFamily != "" {
+					family = fmFamily
+				}
 			}
 
 			// We need a unique key for builtins in case a local item overrides it.
@@ -206,11 +210,18 @@ func (r *Registry) DiscoverCustomItems(workspaceRoot string) error {
 			name := d.Name()
 			ext := filepath.Ext(name)
 			if strings.HasPrefix(ext, ".md") {
-				// Compute relative path from the type dir
 				relPath, _ := filepath.Rel(dir, path)
+				parts := strings.Split(filepath.ToSlash(relPath), "/")
 				id := filepath.ToSlash(strings.TrimSuffix(relPath, ext))
-
 				family := ""
+
+				if len(parts) > 1 {
+					family = strings.Join(parts[:len(parts)-1], "/")
+					id = strings.TrimSuffix(parts[len(parts)-1], ext)
+				} else if len(parts) == 1 {
+					id = strings.TrimSuffix(parts[0], ext)
+				}
+
 				var content []byte
 				if b, err := os.ReadFile(path); err == nil {
 					content = b
@@ -218,7 +229,9 @@ func (r *Registry) DiscoverCustomItems(workspaceRoot string) error {
 					if fmID != "" {
 						id = fmID
 					}
-					family = fmFamily
+					if fmFamily != "" {
+						family = fmFamily
+					}
 				}
 
 				humanName := strings.ReplaceAll(id, "_", " ")

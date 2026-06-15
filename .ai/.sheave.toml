@@ -1,8 +1,13 @@
 [rules]
 include = ['~*']
 
-[commands]
-include = ['~*']
+[skills]
+include = [
+  '~*',
+  '#troubleshooting/*',
+  '#aliases/*',
+  '#design/*'
+]
 
 [templates]
 include = ['~*']

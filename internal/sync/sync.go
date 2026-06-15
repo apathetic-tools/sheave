@@ -31,7 +31,7 @@ func SyncToIDE(projectRoot string, opts Options) (bool, error) {
 	}
 
 	activeRules := reg.Resolve("Rule", cfg.Rules.Include, cfg.Rules.Exclude)
-	activeCommands := reg.Resolve("Skill", cfg.Commands.Include, cfg.Commands.Exclude)
+	activeCommands := reg.Resolve("Skill", cfg.Skills.Include, cfg.Skills.Exclude)
 
 	hadChanges := false
 
@@ -61,14 +61,19 @@ func SyncToIDE(projectRoot string, opts Options) (bool, error) {
 	return hadChanges, nil
 }
 
-func writeItems(items []*registry.Item, targetDir string, extension string, projectRoot string, opts Options) (map[string]bool, bool, error) {
+func writeItems(items []*registry.Item, targetDir string, extension string, projectRoot string, spread string, opts Options) (map[string]bool, bool, error) {
 	created := make(map[string]bool)
 	hadChanges := false
 
 	for _, item := range items {
 		filename := item.ID
 		if item.Family != "" {
-			filename = item.Family + "_" + item.ID
+			if spread == "subdir" {
+				filename = filepath.Join(item.Family, item.ID)
+			} else {
+				// spread == "dir"
+				filename = strings.ReplaceAll(item.Family, "/", "_") + "_" + item.ID
+			}
 		}
 		filename += extension
 		dest := filepath.Join(targetDir, filename)

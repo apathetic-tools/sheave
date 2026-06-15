@@ -38,8 +38,8 @@ var enableCmd = &cobra.Command{
 		switch item.Type {
 		case "Rule":
 			sel = &cfg.Rules
-		case "Command":
-			sel = &cfg.Commands
+		case "Skill":
+			sel = &cfg.Skills
 		case "Template":
 			sel = &cfg.Templates
 		case "Workflow":

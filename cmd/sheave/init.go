@@ -112,7 +112,7 @@ var initCmd = &cobra.Command{
 
 		cfg := &config.Config{
 			Rules:     config.Selection{Include: includes},
-			Commands:  config.Selection{Include: includes},
+			Skills:    config.Selection{Include: includes},
 			Templates: config.Selection{Include: includes},
 			Workflows: config.Selection{Include: includes},
 		}

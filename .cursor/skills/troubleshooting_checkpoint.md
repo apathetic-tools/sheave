@@ -1,3 +1,8 @@
+---
+description: Built-in Skill
+invocable: disable-model-invocation
+name: checkpoint
+---
 # checkpoint
 
 Create checkpoint commit now. Stage all changes and commit with `checkpoint(scope): brief description`. For saving progress during debugging - tests don't need to pass.
@@ -22,4 +27,3 @@ Create checkpoint commit now. Stage all changes and commit with `checkpoint(scop
 - Intermediate saves - don't need to pass checks
 - Still meaningful - describe current state
 - Incorporate user context if provided
-

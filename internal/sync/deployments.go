@@ -7,6 +7,8 @@ import (
 	"sort"
 	"strings"
 
+	"gopkg.in/yaml.v3"
+
 	"github.com/apathetic-tools/sheave/internal/config"
 	"github.com/apathetic-tools/sheave/internal/registry"
 )
@@ -20,11 +22,8 @@ func deployDataDriven(provider config.ProviderConfig, rules, commands []*registr
 
 	// 1. Process "rules" component
 	if provider.Rules != nil {
-		if provider.Rules.Spread == "dir" {
+		if provider.Rules.Spread == "dir" || provider.Rules.Spread == "subdir" {
 			rulesDir := filepath.Join(projectRoot, provider.TargetDir, provider.Rules.Path)
-			if !opts.DryRun {
-				_ = os.MkdirAll(rulesDir, 0755)
-			}
 			var changed bool
 			var err error
 
@@ -34,7 +33,18 @@ func deployDataDriven(provider config.ProviderConfig, rules, commands []*registr
 				ext = "." + ext
 			}
 
-			createdRules, changed, err = writeItems(rules, rulesDir, ext, projectRoot, opts)
+			var generatedRules []*registry.Item
+			for _, item := range rules {
+				newItem := *item
+				content, err := generateItemContent(item, provider.Rules)
+				if err != nil {
+					return false, err
+				}
+				newItem.Content = content
+				generatedRules = append(generatedRules, &newItem)
+			}
+
+			createdRules, changed, err = writeItems(generatedRules, rulesDir, ext, projectRoot, provider.Rules.Spread, opts)
 			if err != nil {
 				return false, err
 			}
@@ -45,6 +55,11 @@ func deployDataDriven(provider config.ProviderConfig, rules, commands []*registr
 				return false, err
 			}
 			hadChanges = hadChanges || changed
+
+			// Clean up the directory if it's completely empty (e.g. all rules were removed)
+			if !opts.DryRun {
+				_ = os.Remove(rulesDir)
+			}
 		} else {
 			// Spread file is not implemented yet for rules
 			fmt.Printf("Stub: rules spread=file not implemented yet\n")
@@ -55,11 +70,8 @@ func deployDataDriven(provider config.ProviderConfig, rules, commands []*registr
 
 	// 2. Process "skills" component (maps to commands from registry)
 	if provider.Skills != nil {
-		if provider.Skills.Spread == "dir" {
+		if provider.Skills.Spread == "dir" || provider.Skills.Spread == "subdir" {
 			commandsDir := filepath.Join(projectRoot, provider.TargetDir, provider.Skills.Path)
-			if !opts.DryRun {
-				_ = os.MkdirAll(commandsDir, 0755)
-			}
 			var changed bool
 			var err error
 
@@ -68,7 +80,18 @@ func deployDataDriven(provider config.ProviderConfig, rules, commands []*registr
 				ext = "." + ext
 			}
 
-			createdCommands, changed, err = writeItems(commands, commandsDir, ext, projectRoot, opts)
+			var generatedCommands []*registry.Item
+			for _, item := range commands {
+				newItem := *item
+				content, err := generateItemContent(item, provider.Skills)
+				if err != nil {
+					return false, err
+				}
+				newItem.Content = content
+				generatedCommands = append(generatedCommands, &newItem)
+			}
+
+			createdCommands, changed, err = writeItems(generatedCommands, commandsDir, ext, projectRoot, provider.Skills.Spread, opts)
 			if err != nil {
 				return false, err
 			}
@@ -79,6 +102,11 @@ func deployDataDriven(provider config.ProviderConfig, rules, commands []*registr
 				return false, err
 			}
 			hadChanges = hadChanges || changed
+
+			// Clean up the directory if it's completely empty (e.g. all skills were removed)
+			if !opts.DryRun {
+				_ = os.Remove(commandsDir)
+			}
 		} else {
 			fmt.Printf("Stub: skills spread=file not implemented yet\n")
 		}
@@ -99,15 +127,15 @@ func deployDataDriven(provider config.ProviderConfig, rules, commands []*registr
 	for name, comp := range simpleComponents {
 		if comp != nil && comp.Spread == "file" {
 			path := filepath.Join(projectRoot, provider.TargetDir, comp.Path)
-			stubContent := []byte(fmt.Sprintf("{\n  \"//\": \"Stub for %s\"\n}\n", name))
-			if comp.Type == "dot" {
-				stubContent = []byte(fmt.Sprintf("# Stub for %s\n", name))
+			// If it's just a stub, don't write it if it doesn't exist.
+			// Also don't overwrite it if it DOES exist (to preserve user's content).
+			// We only want to generate these components when we implement real generators.
+			if _, err := os.Stat(path); err == nil {
+				// It exists, do nothing so we don't overwrite user content with {}
+			} else if os.IsNotExist(err) {
+				// It doesn't exist, and user asked not to create empty ones
+				continue
 			}
-			changed, err := writeIfChanged(path, stubContent, projectRoot, opts)
-			if err != nil {
-				return false, err
-			}
-			hadChanges = hadChanges || changed
 		} else if comp != nil {
 			fmt.Printf("Stub: %s spread=%s not implemented yet\n", name, comp.Spread)
 		}
@@ -169,8 +197,7 @@ func deployDataDriven(provider config.ProviderConfig, rules, commands []*registr
 			}
 			hadChanges = hadChanges || changed
 		} else if hasCatchall && !opts.DryRun {
-			// Touch empty main file if it didn't exist
-			if _, err := os.Stat(outputFile); os.IsNotExist(err) {
+			if _, err := os.Stat(outputFile); err == nil {
 				changed, err := writeIfChanged(outputFile, []byte(""), projectRoot, opts)
 				if err != nil {
 					return false, err
@@ -218,4 +245,71 @@ func sortedKeys(m map[string]bool) []string {
 	}
 	sort.Strings(keys)
 	return keys
+}
+
+func generateItemContent(item *registry.Item, comp *config.ComponentConfig) ([]byte, error) {
+	if comp == nil || len(comp.Frontmatter) == 0 {
+		return item.Content, nil
+	}
+
+	body := extractContentBody(item.Content)
+
+	// Extract existing frontmatter
+	existingFM := make(map[string]any)
+	str := string(item.Content)
+	if strings.HasPrefix(str, "---\n") || strings.HasPrefix(str, "---\r\n") {
+		start := strings.Index(str, "\n") + 1
+		end := strings.Index(str[start:], "\n---")
+		if end != -1 {
+			yamlStr := str[start : start+end]
+			_ = yaml.Unmarshal([]byte(yamlStr), &existingFM)
+		}
+	}
+
+	newFM := make(map[string]any)
+	for _, field := range comp.Frontmatter {
+		var prop *config.FieldProp
+		switch field {
+		case "name":
+			prop = comp.Name
+		case "description":
+			prop = comp.Description
+		case "invocable":
+			prop = comp.Invocable
+		case "metadata":
+			prop = comp.Metadata
+		}
+
+		val, exists := existingFM[field]
+		if !exists {
+			if field == "name" {
+				val = item.Name
+			} else if field == "description" {
+				val = item.Description
+			} else if prop != nil && prop.Name != "" {
+				val = prop.Name
+			}
+		}
+
+		if val != nil && val != "" {
+			newFM[field] = val
+		}
+	}
+
+	if len(newFM) == 0 {
+		return item.Content, nil
+	}
+
+	fmBytes, err := yaml.Marshal(newFM)
+	if err != nil {
+		return nil, err
+	}
+
+	var result strings.Builder
+	result.WriteString("---\n")
+	result.WriteString(string(fmBytes))
+	result.WriteString("---\n")
+	result.WriteString(body)
+
+	return []byte(result.String()), nil
 }

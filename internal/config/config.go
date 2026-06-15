@@ -55,7 +55,7 @@ type ProviderConfig struct {
 type Config struct {
 	ActiveProviders []string                  `toml:"active_providers,omitempty"`
 	Rules           Selection                 `toml:"rules,omitempty"`
-	Commands        Selection                 `toml:"commands,omitempty"`
+	Skills          Selection                 `toml:"skills,omitempty"`
 	Templates       Selection                 `toml:"templates,omitempty"`
 	Workflows       Selection                 `toml:"workflows,omitempty"`
 	Providers       map[string]ProviderConfig `toml:"providers,omitempty"`
@@ -117,11 +117,11 @@ func Load(path string) (*Config, error) {
 	if len(userCfg.Rules.Exclude) > 0 {
 		baseCfg.Rules.Exclude = userCfg.Rules.Exclude
 	}
-	if len(userCfg.Commands.Include) > 0 {
-		baseCfg.Commands.Include = userCfg.Commands.Include
+	if len(userCfg.Skills.Include) > 0 {
+		baseCfg.Skills.Include = userCfg.Skills.Include
 	}
-	if len(userCfg.Commands.Exclude) > 0 {
-		baseCfg.Commands.Exclude = userCfg.Commands.Exclude
+	if len(userCfg.Skills.Exclude) > 0 {
+		baseCfg.Skills.Exclude = userCfg.Skills.Exclude
 	}
 	if len(userCfg.Templates.Include) > 0 {
 		baseCfg.Templates.Include = userCfg.Templates.Include
