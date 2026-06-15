@@ -15,6 +15,7 @@ import (
 // Item represents a single AI guidance item (Command, Rule, Template, or Workflow)
 type Item struct {
 	ID          string
+	BaseName    string
 	Family      string
 	Name        string
 	Type        string // "Command", "Rule", "Template", "Workflow"
@@ -99,11 +100,14 @@ func (r *Registry) registerBuiltins() {
 			// ID and Family inference from directory structure
 			id := relPath
 			family := ""
+			baseName := id
 			if len(parts) > 2 {
 				family = strings.Join(parts[1:len(parts)-1], "/")
-				id = strings.TrimSuffix(parts[len(parts)-1], ext)
+				baseName = strings.TrimSuffix(parts[len(parts)-1], ext)
+				id = baseName
 			} else if len(parts) == 2 {
-				id = strings.TrimSuffix(parts[1], ext)
+				baseName = strings.TrimSuffix(parts[1], ext)
+				id = baseName
 			}
 
 			var content []byte
@@ -131,6 +135,7 @@ func (r *Registry) registerBuiltins() {
 
 				r.AddBuiltin(&Item{
 					ID:          id,
+					BaseName:    baseName,
 					Family:      family,
 					Name:        humanName,
 					Type:        itemType,
@@ -221,12 +226,15 @@ func (r *Registry) DiscoverCustomItems(workspaceRoot string) error {
 				parts := strings.Split(filepath.ToSlash(relPath), "/")
 				id := filepath.ToSlash(strings.TrimSuffix(relPath, ext))
 				family := ""
+				baseName := id
 
 				if len(parts) > 1 {
 					family = strings.Join(parts[:len(parts)-1], "/")
-					id = strings.TrimSuffix(parts[len(parts)-1], ext)
+					baseName = strings.TrimSuffix(parts[len(parts)-1], ext)
+					id = baseName
 				} else if len(parts) == 1 {
-					id = strings.TrimSuffix(parts[0], ext)
+					baseName = strings.TrimSuffix(parts[0], ext)
+					id = baseName
 				}
 
 				var content []byte
@@ -245,6 +253,7 @@ func (r *Registry) DiscoverCustomItems(workspaceRoot string) error {
 
 				r.AddCustom(&Item{
 					ID:          id,
+					BaseName:    baseName,
 					Family:      family,
 					Name:        humanName,
 					Type:        itemType,
