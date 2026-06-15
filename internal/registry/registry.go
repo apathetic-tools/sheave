@@ -1,17 +1,15 @@
 package registry
 
 import (
-	"embed"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"gopkg.in/yaml.v3"
-)
 
-//go:embed all:builtin
-var builtinFS embed.FS
+	sheaveregistry "github.com/apathetic-tools/sheave/registry"
+)
 
 // Item represents a single AI guidance item (Command, Rule, Template, or Workflow)
 type Item struct {
@@ -67,7 +65,7 @@ func NewRegistry() *Registry {
 }
 
 func (r *Registry) registerBuiltins() {
-	fs.WalkDir(builtinFS, "builtin", func(path string, d fs.DirEntry, err error) error {
+	fs.WalkDir(sheaveregistry.FS, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil || d.IsDir() {
 			return nil
 		}
@@ -94,7 +92,7 @@ func (r *Registry) registerBuiltins() {
 
 			var content []byte
 			family := ""
-			if b, err := fs.ReadFile(builtinFS, path); err == nil {
+			if b, err := fs.ReadFile(sheaveregistry.FS, path); err == nil {
 				content = b
 				fmID, fmFamily := parseFrontmatter(b)
 				if fmID != "" {

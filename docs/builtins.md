@@ -7,7 +7,7 @@ Sheave comes with a suite of built-in, pre-packaged rules, commands, templates, 
 In the Sheave source code repository, all built-in assets are located in the following directory structure:
 
 ```text
-internal/registry/builtin/
+registry/
 ├── commands/
 ├── rules/
 ├── templates/
@@ -18,7 +18,7 @@ Any `.md` or `.mdx` file added to these directories becomes a globally available
 
 ## How do they work?
 
-The contents of the `internal/registry/builtin/` directory are packaged directly into the final `sheave` binary at compile-time using Go's `//go:embed` feature.
+The contents of the `registry/` directory are packaged directly into the final `sheave` binary at compile-time using Go's `//go:embed` feature.
 
 This means the CLI does not need to download or fetch files at runtime. The built-in rules ship completely offline as part of the executable.
 
@@ -37,7 +37,7 @@ include = ["#golang/enforce-interfaces"]
 
 If you are a contributor looking to add new built-in rules to Sheave:
 
-1. Navigate to the appropriate folder inside `internal/registry/builtin/`.
+1. Navigate to the appropriate folder inside `registry/`.
 2. Create a new `.md` or `.mdx` file.
 3. (Optional) Add frontmatter to specify a `sheave-family` and `sheave-id` if you want it categorized specifically.
 4. Rebuild the `sheave` binary (`go build`).
