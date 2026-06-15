@@ -1,0 +1,11 @@
+[rules]
+include = ['*']
+
+[commands]
+include = ['*']
+
+[templates]
+include = ['*']
+
+[workflows]
+include = ['*']

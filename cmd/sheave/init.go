@@ -13,14 +13,21 @@ var initCmd = &cobra.Command{
 	Use:     "init",
 	Short:   "Initialize sheave configuration",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		path := ".sheave.toml"
+		cwd, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+		path := config.GetConfigPath(cwd)
 		if _, err := os.Stat(path); err == nil {
 			fmt.Printf("Configuration file %s already exists.\n", path)
 			return nil
 		}
 
 		cfg := &config.Config{
-			Select: []string{"ALL"},
+			Rules:     config.Selection{Include: []string{"*"}},
+			Commands:  config.Selection{Include: []string{"*"}},
+			Templates: config.Selection{Include: []string{"*"}},
+			Workflows: config.Selection{Include: []string{"*"}},
 		}
 
 		if err := cfg.Save(path); err != nil {

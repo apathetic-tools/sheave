@@ -2,8 +2,10 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/apathetic-tools/sheave/internal/config"
+	"github.com/apathetic-tools/sheave/internal/registry"
 	"github.com/spf13/cobra"
 )
 
@@ -12,17 +14,45 @@ var showCmd = &cobra.Command{
 	Use:     "show",
 	Short:   "Show the fully resolved configuration",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		path := ".sheave.toml"
+		cwd, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+		path := config.GetConfigPath(cwd)
 		cfg, err := config.Load(path)
 		if err != nil {
 			return err
 		}
 
-		active := cfg.Resolve()
-		fmt.Printf("Active items (%d total):\n", len(active))
-		for _, v := range active {
-			fmt.Printf("  - %s\n", v)
+		reg := registry.NewRegistry()
+		_ = reg.DiscoverCustomItems(cwd)
+
+		activeRules := reg.Resolve("Rule", cfg.Rules.Include, cfg.Rules.Exclude)
+		activeCommands := reg.Resolve("Command", cfg.Commands.Include, cfg.Commands.Exclude)
+		activeTemplates := reg.Resolve("Template", cfg.Templates.Include, cfg.Templates.Exclude)
+		activeWorkflows := reg.Resolve("Workflow", cfg.Workflows.Include, cfg.Workflows.Exclude)
+
+		total := len(activeRules) + len(activeCommands) + len(activeTemplates) + len(activeWorkflows)
+
+		fmt.Printf("Active items (%d total):\n", total)
+
+		printGroup := func(name string, items []*registry.Item) {
+			if len(items) > 0 {
+				fmt.Printf("\n--- %ss ---\n", name)
+				for _, v := range items {
+					key := v.ID
+					if v.Family != "" {
+						key = v.Family + "/" + v.ID
+					}
+					fmt.Printf("  - %s\n", key)
+				}
+			}
 		}
+
+		printGroup("Rule", activeRules)
+		printGroup("Command", activeCommands)
+		printGroup("Template", activeTemplates)
+		printGroup("Workflow", activeWorkflows)
 
 		return nil
 	},

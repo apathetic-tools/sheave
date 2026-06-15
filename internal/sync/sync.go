@@ -7,241 +7,147 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/apathetic-tools/sheave/internal/config"
+	"github.com/apathetic-tools/sheave/internal/registry"
 )
 
-// Options holds configuration for the sync operation
 type Options struct {
 	Quiet  bool
 	DryRun bool
 }
 
-// SyncToIDE syncs AI guidance files from .ai/ to IDE-specific directories.
 func SyncToIDE(projectRoot string, opts Options) (bool, error) {
-	aiRulesDir := filepath.Join(projectRoot, ".ai", "rules")
-	aiCommandsDir := filepath.Join(projectRoot, ".ai", "commands")
+	reg := registry.NewRegistry()
+	if err := reg.DiscoverCustomItems(projectRoot); err != nil {
+		return false, fmt.Errorf("failed to discover custom items: %w", err)
+	}
+
+	path := config.GetConfigPath(projectRoot)
+	cfg, err := config.Load(path)
+	if err != nil {
+		return false, fmt.Errorf("failed to load config: %w", err)
+	}
+
+	activeRules := reg.Resolve("Rule", cfg.Rules.Include, cfg.Rules.Exclude)
+	activeCommands := reg.Resolve("Command", cfg.Commands.Include, cfg.Commands.Exclude)
+
 	cursorRulesDir := filepath.Join(projectRoot, ".cursor", "rules")
 	cursorCommandsDir := filepath.Join(projectRoot, ".cursor", "commands")
 	claudeDir := filepath.Join(projectRoot, ".claude")
 
-	if err := ensureDirectories(aiRulesDir, aiCommandsDir, cursorRulesDir, cursorCommandsDir, claudeDir, opts); err != nil {
-		return false, fmt.Errorf("failed to ensure directories: %w", err)
+	if !opts.DryRun {
+		_ = os.MkdirAll(cursorRulesDir, 0755)
+		_ = os.MkdirAll(cursorCommandsDir, 0755)
+		_ = os.MkdirAll(claudeDir, 0755)
 	}
 
-	baseMdcFiles, err := getSortedFiles(aiRulesDir, "mdc")
-	if err != nil {
-		return false, fmt.Errorf("failed to get base mdc files: %w", err)
-	}
+	hadChanges := false
 
-	createdRulesFiles := make(map[string]bool)
-	hadBaseChanges, err := copyBaseMdcFiles(aiRulesDir, cursorRulesDir, projectRoot, baseMdcFiles, createdRulesFiles, opts)
+	createdRules, changed, err := writeItems(activeRules, cursorRulesDir, ".mdc", projectRoot, opts)
 	if err != nil {
 		return false, err
 	}
+	hadChanges = hadChanges || changed
 
-	hadCursorChanges, err := copyCursorMdcFiles(filepath.Join(aiRulesDir, "cursor"), cursorRulesDir, projectRoot, createdRulesFiles, opts)
+	createdCommands, changed, err := writeItems(activeCommands, cursorCommandsDir, ".md", projectRoot, opts)
 	if err != nil {
 		return false, err
 	}
+	hadChanges = hadChanges || changed
 
-	createdCommandsFiles := make(map[string]bool)
-	hadCommandsChanges, err := copyCommandFiles(aiCommandsDir, cursorCommandsDir, projectRoot, createdCommandsFiles, opts)
+	changed, err = removeOldFiles(cursorRulesDir, createdRules, projectRoot, opts)
 	if err != nil {
 		return false, err
 	}
+	hadChanges = hadChanges || changed
 
-	hadRemovalsRules, err := removeOldFiles(cursorRulesDir, createdRulesFiles, "mdc", projectRoot, opts)
+	changed, err = removeOldFiles(cursorCommandsDir, createdCommands, projectRoot, opts)
 	if err != nil {
 		return false, err
 	}
+	hadChanges = hadChanges || changed
 
-	hadRemovalsCommands, err := removeOldFiles(cursorCommandsDir, createdCommandsFiles, "md", projectRoot, opts)
+	changed, err = generateClaudeFile(claudeDir, activeRules, activeCommands, projectRoot, opts)
 	if err != nil {
 		return false, err
 	}
+	hadChanges = hadChanges || changed
 
-	hadClaudeChanges, err := generateClaudeFile(aiRulesDir, claudeDir, baseMdcFiles, projectRoot, opts)
-	if err != nil {
-		return false, err
-	}
-
-	hadAnyChanges := hadBaseChanges || hadCursorChanges || hadCommandsChanges || hadRemovalsRules || hadRemovalsCommands || hadClaudeChanges
-
-	if !hadAnyChanges && !opts.Quiet {
+	if !hadChanges && !opts.Quiet {
 		fmt.Println("No changes to make")
 	}
-
-	return hadAnyChanges, nil
+	return hadChanges, nil
 }
 
-func ensureDirectories(aiRulesDir, aiCommandsDir, cursorRulesDir, cursorCommandsDir, claudeDir string, opts Options) error {
-	dirs := []string{
-		aiRulesDir,
-		filepath.Join(aiRulesDir, "claude"),
-		filepath.Join(aiRulesDir, "cursor"),
-		aiCommandsDir,
-		cursorRulesDir,
-		cursorCommandsDir,
-		claudeDir,
-	}
+func writeItems(items []*registry.Item, targetDir string, extension string, projectRoot string, opts Options) (map[string]bool, bool, error) {
+	created := make(map[string]bool)
+	hadChanges := false
 
-	for _, dir := range dirs {
-		if !opts.DryRun {
-			if err := os.MkdirAll(dir, 0755); err != nil {
-				return err
-			}
+	for _, item := range items {
+		filename := item.ID
+		if item.Family != "" {
+			filename = item.Family + "_" + item.ID
+		}
+		filename += extension
+		dest := filepath.Join(targetDir, filename)
+		created[dest] = true
+
+		changed, err := writeIfChanged(dest, item.Content, projectRoot, opts)
+		if err != nil {
+			return nil, false, err
+		}
+		if changed {
+			hadChanges = true
 		}
 	}
-	return nil
+	return created, hadChanges, nil
 }
 
-func getSortedFiles(dir, extension string) ([]string, error) {
-	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		return nil, nil
-	}
-	entries, err := os.ReadDir(dir)
-	if err != nil {
-		return nil, err
-	}
-
-	var files []string
-	for _, entry := range entries {
-		if !entry.IsDir() && strings.HasSuffix(entry.Name(), "."+extension) {
-			files = append(files, filepath.Join(dir, entry.Name()))
-		}
-	}
-	return files, nil
-}
-
-func readFileContent(path string) (string, error) {
-	b, err := os.ReadFile(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return "", nil
-		}
-		return "", err
-	}
-	return string(b), nil
-}
-
-func extractMdcContent(content string) string {
-	// Remove YAML frontmatter between --- markers
-	re := regexp.MustCompile(`(?m)^---\s*\n(?:.*?\n)*?---\s*\n`)
-	return strings.TrimSpace(re.ReplaceAllString(content, ""))
-}
-
-func formatHeader(filename string) string {
-	name := strings.TrimSuffix(filename, ".mdc")
-	name = strings.TrimSuffix(name, ".md")
-	name = strings.ReplaceAll(name, "_", " ")
-	name = strings.Title(name)
-	return fmt.Sprintf("# %s\n\n", name)
-}
-
-func copyFileWithLog(source, dest, projectRoot string, opts Options) (bool, error) {
-	sourceContent, err := os.ReadFile(source)
-	if err != nil {
-		return false, err
-	}
-
+func writeIfChanged(dest string, newContent []byte, projectRoot string, opts Options) (bool, error) {
 	if _, err := os.Stat(dest); err == nil {
-		destContent, err := os.ReadFile(dest)
-		if err == nil && bytes.Equal(sourceContent, destContent) {
-			return false, nil // No change needed
+		existingContent, err := os.ReadFile(dest)
+		if err == nil && bytes.Equal(existingContent, newContent) {
+			return false, nil
 		}
 	}
 
 	if !opts.DryRun {
-		if err := os.WriteFile(dest, sourceContent, 0644); err != nil {
+		if err := os.WriteFile(dest, newContent, 0644); err != nil {
 			return false, err
 		}
 	}
 
 	if !opts.Quiet {
-		relSource, _ := filepath.Rel(projectRoot, source)
 		relDest, _ := filepath.Rel(projectRoot, dest)
-		if relSource == "" {
-			relSource = source
-		}
 		if relDest == "" {
 			relDest = dest
 		}
-		fmt.Printf("Copied: %s -> %s\n", relSource, relDest)
+		fmt.Printf("Generated: %s\n", relDest)
 	}
 
 	return true, nil
 }
 
-func copyBaseMdcFiles(aiRulesDir, cursorRulesDir, projectRoot string, baseMdcFiles []string, created map[string]bool, opts Options) (bool, error) {
-	hadChanges := false
-	for _, file := range baseMdcFiles {
-		dest := filepath.Join(cursorRulesDir, filepath.Base(file))
-		changed, err := copyFileWithLog(file, dest, projectRoot, opts)
-		if err != nil {
-			return false, err
-		}
-		if changed {
-			hadChanges = true
-		}
-		created[dest] = true
+func removeOldFiles(targetDir string, created map[string]bool, projectRoot string, opts Options) (bool, error) {
+	if _, err := os.Stat(targetDir); os.IsNotExist(err) {
+		return false, nil
 	}
-	return hadChanges, nil
-}
 
-func copyCursorMdcFiles(cursorSpecificDir, cursorRulesDir, projectRoot string, created map[string]bool, opts Options) (bool, error) {
-	files, err := getSortedFiles(cursorSpecificDir, "mdc")
+	entries, err := os.ReadDir(targetDir)
 	if err != nil {
 		return false, err
 	}
 
 	hadChanges := false
-	for _, file := range files {
-		dest := filepath.Join(cursorRulesDir, filepath.Base(file))
-		changed, err := copyFileWithLog(file, dest, projectRoot, opts)
-		if err != nil {
-			return false, err
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
 		}
-		if changed {
-			hadChanges = true
-		}
-		created[dest] = true
-	}
-	return hadChanges, nil
-}
-
-func copyCommandFiles(aiCommandsDir, cursorCommandsDir, projectRoot string, created map[string]bool, opts Options) (bool, error) {
-	files, err := getSortedFiles(aiCommandsDir, "md")
-	if err != nil {
-		return false, err
-	}
-
-	hadChanges := false
-	for _, file := range files {
-		dest := filepath.Join(cursorCommandsDir, filepath.Base(file))
-		changed, err := copyFileWithLog(file, dest, projectRoot, opts)
-		if err != nil {
-			return false, err
-		}
-		if changed {
-			hadChanges = true
-		}
-		created[dest] = true
-	}
-	return hadChanges, nil
-}
-
-func removeOldFiles(targetDir string, created map[string]bool, extension, projectRoot string, opts Options) (bool, error) {
-	files, err := getSortedFiles(targetDir, extension)
-	if err != nil {
-		return false, err
-	}
-
-	hadChanges := false
-	for _, file := range files {
+		file := filepath.Join(targetDir, entry.Name())
 		if !created[file] {
 			if !opts.DryRun {
-				if err := os.Remove(file); err != nil {
-					return false, err
-				}
+				_ = os.Remove(file)
 			}
 			hadChanges = true
 			if !opts.Quiet {
@@ -256,98 +162,34 @@ func removeOldFiles(targetDir string, created map[string]bool, extension, projec
 	return hadChanges, nil
 }
 
-func concatenateMdcFiles(files []string) (string, error) {
+func extractContentBody(content []byte) string {
+	str := string(content)
+	re := regexp.MustCompile(`(?m)^---\s*\n(?:.*?\n)*?---\s*\n`)
+	return strings.TrimSpace(re.ReplaceAllString(str, ""))
+}
+
+func generateClaudeFile(claudeDir string, rules, commands []*registry.Item, projectRoot string, opts Options) (bool, error) {
 	var result strings.Builder
-	for _, file := range files {
-		content, err := readFileContent(file)
-		if err != nil {
-			return "", err
-		}
-		if strings.TrimSpace(content) != "" {
-			extracted := extractMdcContent(content)
-			if extracted != "" {
-				result.WriteString(formatHeader(filepath.Base(file)))
-				result.WriteString(extracted)
-				if !strings.HasSuffix(extracted, "\n") {
-					result.WriteString("\n")
-				}
-				result.WriteString("\n")
-			}
-		}
-	}
-	return result.String(), nil
-}
 
-func concatenateMdFiles(files []string) (string, error) {
-	var result strings.Builder
-	for _, file := range files {
-		content, err := readFileContent(file)
-		if err != nil {
-			return "", err
-		}
-		if strings.TrimSpace(content) != "" {
-			result.WriteString(formatHeader(filepath.Base(file)))
-			result.WriteString(content)
-			if !strings.HasSuffix(content, "\n") {
-				result.WriteString("\n")
-			}
-			result.WriteString("\n")
-		}
-	}
-	return result.String(), nil
-}
-
-// GenerateSingleInstructionFile strips frontmatter from .mdc files and concatenates them along with .md files into a single instruction file.
-func GenerateSingleInstructionFile(outputFile string, mdcFiles []string, mdFiles []string, projectRoot string, opts Options) (bool, error) {
-	baseContent, err := concatenateMdcFiles(mdcFiles)
-	if err != nil {
-		return false, err
-	}
-
-	specificContent, err := concatenateMdFiles(mdFiles)
-	if err != nil {
-		return false, err
-	}
-
-	newContent := baseContent + specificContent
-	if newContent == "" {
-		return false, nil // Avoid writing an empty file if no contents
-	}
-
-	if _, err := os.Stat(outputFile); err == nil {
-		existingContent, err := os.ReadFile(outputFile)
-		if err == nil && string(existingContent) == newContent {
-			return false, nil // No change needed
+	for _, item := range rules {
+		body := extractContentBody(item.Content)
+		if body != "" {
+			result.WriteString(fmt.Sprintf("# %s\n\n%s\n\n", item.Name, body))
 		}
 	}
 
-	if !opts.DryRun {
-		if err := os.MkdirAll(filepath.Dir(outputFile), 0755); err != nil {
-			return false, err
-		}
-		if err := os.WriteFile(outputFile, []byte(newContent), 0644); err != nil {
-			return false, err
+	for _, item := range commands {
+		body := extractContentBody(item.Content)
+		if body != "" {
+			result.WriteString(fmt.Sprintf("# %s\n\n%s\n\n", item.Name, body))
 		}
 	}
 
-	if !opts.Quiet {
-		rel, _ := filepath.Rel(projectRoot, outputFile)
-		if rel == "" {
-			rel = outputFile
-		}
-		fmt.Printf("Generated: %s\n", rel)
+	outputFile := filepath.Join(claudeDir, "CLAUDE.md")
+
+	if result.Len() == 0 {
+		return false, nil
 	}
 
-	return true, nil
-}
-
-func generateClaudeFile(aiRulesDir, claudeDir string, baseMdcFiles []string, projectRoot string, opts Options) (bool, error) {
-	claudeSpecificDir := filepath.Join(aiRulesDir, "claude")
-	claudeMdFiles, err := getSortedFiles(claudeSpecificDir, "md")
-	if err != nil {
-		return false, err
-	}
-
-	claudeOutput := filepath.Join(claudeDir, "CLAUDE.md")
-	return GenerateSingleInstructionFile(claudeOutput, baseMdcFiles, claudeMdFiles, projectRoot, opts)
+	return writeIfChanged(outputFile, []byte(result.String()), projectRoot, opts)
 }
