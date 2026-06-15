@@ -1,4 +1,4 @@
-# Build Requirements
+# build requirements
 
 ## Build Reproducibility and Determinism
 
@@ -110,7 +110,76 @@ topo_modules = list(graphlib.TopologicalSorter(deps).static_order())
 - Builds should produce identical output when run multiple times with the same configuration
 - When making changes that affect iteration order, verify that the output remains deterministic
 
-# Code Quality
+# pytest structure
+
+### PyTest Structure
+
+## Packages
+- Only `tests/` and `tests/utils/` should have `__init__.py`. Do NOT add `__init__.py` to test subdirectories (e.g., `tests/0_tooling/`, `tests/3_independant/`, `tests/5_core/`, etc.). Test subdirectories are not Python packages.
+- Use `tests/utils/` to colocate utilities that are generally helpful for tests or used in multiple test files.
+
+## Imports
+- Never import from one test_* file into another test_* file.
+- Never use `from <package> import <func>` for any `src/` packages, instead use `import <package> as mod_<package>` then use `mod_<package>.<func>`
+- Don't import general utilities not under test from `src/` as test setup helpers. You may call related src functions in a test even if they are not primarily under test. Use `tests/utils/`as helpers only even if you have to replicate the src utility.
+- You can import constants from `src/` code to use in tests, follow import rules.
+- When writting new tests, be aware of our test utilities in `tests/utils/`, especially `patch_everywhere`
+
+## Directories
+- Integration tests go in their own directories separate from unit tests.
+
+## Files
+- Unit tests should have a single file per function tested.
+- Integration tests should have a single file per feature or topic.
+- Tests primarily testing private functions go in their own file `test_priv__<function name no leading underscore>.py` with a file level ignore statement.
+- Tests primarily acting as a lint rule go in their own file  `test_lint__<purpose>.py` and should not be modified as a means of ignoring the failure. Fix the error reported instead.
+
+## Runtime
+- Tests run with `test` log-level by default so trace and debug statements bypass capsys and go to __stderr__.
+- Tests are usually run twice, once against the `src/` directory, and again using our `tests/utils/runtime_swap.py` against the `dist/<package>.py` stitched file.
+
+## Log Output Capture
+
+### LOG_LEVEL=test Bypasses capsys
+- By default, tests run with `LOG_LEVEL=test`, which is the most verbose level
+- When `LOG_LEVEL=test` is set, TRACE and DEBUG messages bypass pytest's `capsys` capture and write directly to `sys.__stderr__`
+- This means `capsys.readouterr()` will NOT capture TRACE/DEBUG messages when `LOG_LEVEL=test` is active
+- This behavior is intentional to allow maximum visibility during test debugging
+
+### Capturing Log Output with capsys
+- If a test needs to assert against log output captured by `capsys`, it must set the log level to something other than `test`
+- Use the `module_logger` fixture with `useLevel()` context manager to temporarily set a different log level:
+  ```python
+  def test_something(
+      capsys: pytest.CaptureFixture[str],
+      module_logger: mod_logs.AppLogger,
+  ) -> None:
+      # Set log level to info/debug so capsys can capture
+      with module_logger.useLevel("info"):
+          code = mod_cli.main(["--verbose"])
+      
+      captured = capsys.readouterr()
+      out = (captured.out + captured.err).lower()
+      assert "[debug" in out  # Now this will work
+  ```
+- Common log levels for capsys capture: `"info"`, `"debug"`, `"warning"` (avoid `"test"` if you need capsys)
+- When using `module_logger.useLevel()`, the log level is automatically restored after the context exits
+
+### Asserting Against stderr
+- When `LOG_LEVEL=test` is active, check `sys.__stderr__` directly for TRACE/DEBUG messages
+- Use `monkeypatch.setattr(sys, "__stderr__", StringIO())` to capture bypass messages:
+  ```python
+  from io import StringIO
+  
+  bypass_buf = StringIO()
+  monkeypatch.setattr(sys, "__stderr__", bypass_buf)
+  # ... run code ...
+  bypass_output = bypass_buf.getvalue()
+  assert "[trace" in bypass_output.lower()
+  ```
+- For INFO/WARNING/ERROR messages, use `capsys` with an appropriate log level (not `test`)
+
+# code quality
 
 ## Code Quality
 
@@ -320,30 +389,7 @@ Please help me resolve the remaining issues to get `poetry run poe check:fix` pa
 - ❌ **Bad**: Exclude `tests/9_integration/test_main_config.py` from mypy checking
 - ✅ **Good**: Rename `tests/9_integration/test_main_config.py` to `tests/9_integration/test_main_config_integration.py`
 
-# Communication
-
-### Asking Questions
-
-When asking questions, **wait for response** before proceeding. Exception: direct instructions (e.g., "add a function") are confirmation.
-
-### Handling Developer Questions
-
-If developer asks ANY question (including "do we need X?", "can we Y?"), you **must**:
-1. Answer completely with recommendations
-2. Ask what to do and **stop** - no implementation
-3. Wait for response
-
-Exploratory work (reading/searching) is allowed; no code changes.
-
-### Troubleshooting When Stuck
-
-Ask user for insight. Also ask if you should: stash changes, rollback, or add isolated changes one at a time. If yes, create plan in `.plan/` per `.ai/templates/plan_debug_rollback.tmpl.md` and consult `.ai/workflows/plan_debug_rollback.md`.
-
-### Using Plan Documents
-
-For complex features, refactors, API changes, or multi-phase work, use the plan format (`.ai/workflows/plan_feature.md`). Plans help coordinate work, track progress, and ensure all phases are completed.
-
-# Git Conventions
+# git conventions
 
 ### Git Commit Conventions
 
@@ -386,76 +432,53 @@ Other examples:
 - `refactor(utils): simplify path normalization logic`
 - `test(integration): add tests for log level handling`
 
-# Pytest Structure
+# workflow
 
-### PyTest Structure
+### Execution and Workflow
+- **VENV:** Use the poetry venv for execution, e.g. `poetry run python3` (not bare `python3`)
+- **Poe tasks**: `check`, `fix`, `test`, `coverage`, `check:fix` (before commit), `build:script`
+- **NEVER edit `.cursor/` or `.claude/` directly**: Generated from `.ai/`. Edit `.ai/rules/` or `.ai/commands/`, then run `poetry run poe sync:ai:guidance` and include generated files in commit.
+- **Before committing**: Run `poetry run poe check:fix`
+- **Debugging tests**: 
+  1. First try `LOG_LEVEL=test poetry run poe test:pytest:installed tests/path/to/test.py::test_name -xvs`. 
+  2. If stuck, see `.ai/workflows/debug_tests.md`
 
-## Packages
-- Only `tests/` and `tests/utils/` should have `__init__.py`. Do NOT add `__init__.py` to test subdirectories (e.g., `tests/0_tooling/`, `tests/3_independant/`, `tests/5_core/`, etc.). Test subdirectories are not Python packages.
-- Use `tests/utils/` to colocate utilities that are generally helpful for tests or used in multiple test files.
+### Plan File Management
 
-## Imports
-- Never import from one test_* file into another test_* file.
-- Never use `from <package> import <func>` for any `src/` packages, instead use `import <package> as mod_<package>` then use `mod_<package>.<func>`
-- Don't import general utilities not under test from `src/` as test setup helpers. You may call related src functions in a test even if they are not primarily under test. Use `tests/utils/`as helpers only even if you have to replicate the src utility.
-- You can import constants from `src/` code to use in tests, follow import rules.
-- When writting new tests, be aware of our test utilities in `tests/utils/`, especially `patch_everywhere`
+When creating a **new** plan document:
+- Check `.plan/` for plan files older than 24 hours
+- If found, ask developer if they should be deleted
+- Note any plans that are not marked as all phases completed
+- Keep implemented/completed plans; only ask about stale incomplete plans
 
-## Directories
-- Integration tests go in their own directories separate from unit tests.
+### When to Read Workflow/Template Files
 
-## Files
-- Unit tests should have a single file per function tested.
-- Integration tests should have a single file per feature or topic.
-- Tests primarily testing private functions go in their own file `test_priv__<function name no leading underscore>.py` with a file level ignore statement.
-- Tests primarily acting as a lint rule go in their own file  `test_lint__<purpose>.py` and should not be modified as a means of ignoring the failure. Fix the error reported instead.
+Only read `.ai/workflows/` or `.ai/templates/` when: condition is met (e.g., stuck debugging ? read `debug_tests.md`), or directly asked to work on them. Mentions in rules are references, not immediate read instructions.
 
-## Runtime
-- Tests run with `test` log-level by default so trace and debug statements bypass capsys and go to __stderr__.
-- Tests are usually run twice, once against the `src/` directory, and again using our `tests/utils/runtime_swap.py` against the `dist/<package>.py` stitched file.
+# communication
 
-## Log Output Capture
+### Asking Questions
 
-### LOG_LEVEL=test Bypasses capsys
-- By default, tests run with `LOG_LEVEL=test`, which is the most verbose level
-- When `LOG_LEVEL=test` is set, TRACE and DEBUG messages bypass pytest's `capsys` capture and write directly to `sys.__stderr__`
-- This means `capsys.readouterr()` will NOT capture TRACE/DEBUG messages when `LOG_LEVEL=test` is active
-- This behavior is intentional to allow maximum visibility during test debugging
+When asking questions, **wait for response** before proceeding. Exception: direct instructions (e.g., "add a function") are confirmation.
 
-### Capturing Log Output with capsys
-- If a test needs to assert against log output captured by `capsys`, it must set the log level to something other than `test`
-- Use the `module_logger` fixture with `useLevel()` context manager to temporarily set a different log level:
-  ```python
-  def test_something(
-      capsys: pytest.CaptureFixture[str],
-      module_logger: mod_logs.AppLogger,
-  ) -> None:
-      # Set log level to info/debug so capsys can capture
-      with module_logger.useLevel("info"):
-          code = mod_cli.main(["--verbose"])
-      
-      captured = capsys.readouterr()
-      out = (captured.out + captured.err).lower()
-      assert "[debug" in out  # Now this will work
-  ```
-- Common log levels for capsys capture: `"info"`, `"debug"`, `"warning"` (avoid `"test"` if you need capsys)
-- When using `module_logger.useLevel()`, the log level is automatically restored after the context exits
+### Handling Developer Questions
 
-### Asserting Against stderr
-- When `LOG_LEVEL=test` is active, check `sys.__stderr__` directly for TRACE/DEBUG messages
-- Use `monkeypatch.setattr(sys, "__stderr__", StringIO())` to capture bypass messages:
-  ```python
-  from io import StringIO
-  
-  bypass_buf = StringIO()
-  monkeypatch.setattr(sys, "__stderr__", bypass_buf)
-  # ... run code ...
-  bypass_output = bypass_buf.getvalue()
-  assert "[trace" in bypass_output.lower()
-  ```
-- For INFO/WARNING/ERROR messages, use `capsys` with an appropriate log level (not `test`)
+If developer asks ANY question (including "do we need X?", "can we Y?"), you **must**:
+1. Answer completely with recommendations
+2. Ask what to do and **stop** - no implementation
+3. Wait for response
 
-# Type Checking
+Exploratory work (reading/searching) is allowed; no code changes.
+
+### Troubleshooting When Stuck
+
+Ask user for insight. Also ask if you should: stash changes, rollback, or add isolated changes one at a time. If yes, create plan in `.plan/` per `.ai/templates/plan_debug_rollback.tmpl.md` and consult `.ai/workflows/plan_debug_rollback.md`.
+
+### Using Plan Documents
+
+For complex features, refactors, API changes, or multi-phase work, use the plan format (`.ai/workflows/plan_feature.md`). Plans help coordinate work, track progress, and ensure all phases are completed.
+
+# type checking
 
 ### Type Checking and Linting Best Practices
 
@@ -510,26 +533,161 @@ Other examples:
     - ✅ **Correct**: `package: NotRequired[str]` in `RootConfigResolved` (only present for stitch builds)
     - ❌ **Incorrect**: `module_actions: NotRequired[list[ModuleActionFull]]` in `RootConfigResolved` (can be resolved to `[]`)
 
-# Workflow
+# checkpoint
 
-### Execution and Workflow
-- **VENV:** Use the poetry venv for execution, e.g. `poetry run python3` (not bare `python3`)
-- **Poe tasks**: `check`, `fix`, `test`, `coverage`, `check:fix` (before commit), `build:script`
-- **NEVER edit `.cursor/` or `.claude/` directly**: Generated from `.ai/`. Edit `.ai/rules/` or `.ai/commands/`, then run `poetry run poe sync:ai:guidance` and include generated files in commit.
-- **Before committing**: Run `poetry run poe check:fix`
-- **Debugging tests**: 
-  1. First try `LOG_LEVEL=test poetry run poe test:pytest:installed tests/path/to/test.py::test_name -xvs`. 
-  2. If stuck, see `.ai/workflows/debug_tests.md`
+# checkpoint
 
-### Plan File Management
+Create checkpoint commit now. Stage all changes and commit with `checkpoint(scope): brief description`. For saving progress during debugging - tests don't need to pass.
 
-When creating a **new** plan document:
-- Check `.plan/` for plan files older than 24 hours
-- If found, ask developer if they should be deleted
-- Note any plans that are not marked as all phases completed
-- Keep implemented/completed plans; only ask about stale incomplete plans
+## Behavior
 
-### When to Read Workflow/Template Files
+1. Check modified/added files
+2. Stage all changes (or user-specified files)
+3. Commit with format: `checkpoint(scope): brief description`
+4. **Do NOT run `poetry run poe check:fix`** - intermediate saves only
+5. Message should describe current debugging state
 
-Only read `.ai/workflows/` or `.ai/templates/` when: condition is met (e.g., stuck debugging ? read `debug_tests.md`), or directly asked to work on them. Mentions in rules are references, not immediate read instructions.
+## Examples
+
+- `checkpoint(debug): attempt to fix level number resolution issue`
+- `checkpoint(test): partial fix for handler configuration tests`
+- `checkpoint(logger): debugging custom level registration`
+
+## Notes
+
+- Creates commit immediately - no permission asked
+- Intermediate saves - don't need to pass checks
+- Still meaningful - describe current state
+- Incorporate user context if provided
+
+# cf
+
+# Fix all lint and test errors.
+
+Alias of `checkfix` command.
+
+1. Run `poetry run poe check:fix` to check and auto-fix (each iteration must use this command, subcommands are OK for troubleshooting)
+2. If errors remain, fix manually
+3. Iterate until exit code 0
+4. Fix ALL errors, even if unrelated to current changes. CI fails on any remaining errors
+5. If stuck/unsure, stop and ask user, don't guess
+
+# checkfix
+
+# checkfix
+
+Run `poetry run poe check:fix` and iteratively fix all errors until the check passes completely.
+
+## Behavior
+
+1. Run `poetry run poe check:fix` to check for and auto-fix issues
+2. If errors remain after auto-fix, analyze and fix them manually
+3. Continue iterating until `poetry run poe check:fix` passes with exit code 0
+4. Fix ALL errors, even if they seem unrelated to the current task
+5. If you encounter an error you cannot fix or are unsure how to fix, stop and ask the user for guidance
+
+## Important Notes
+
+- Do not skip errors that seem unrelated - fix everything
+- The goal is a completely clean `poetry run poe check:fix` run
+- If stuck or uncertain about a fix, ask the user rather than guessing
+- This command should be thorough and complete
+- CI will not pass if any errors remain and code cannot be pushed
+
+# p
+
+# p
+
+Alias of `prep` command.
+
+Planning/discussion session. Answer questions, summarize, recommend. **Do NOT implement.**
+
+## Behavior
+
+1. Answer thoroughly with complete info and recommendations
+2. Summarize current situation when relevant
+3. Provide recommendations with reasoning
+4. **Do NOT implement** - planning only
+5. For complex features, suggest using plan format (`.ai/workflows/plan_feature.md`)
+6. After each response, ask: "Proceed with implementing?"
+7. Wait for explicit confirmation
+
+## Notes
+
+- Discussion mode - no code changes, edits, or tool executions
+- May explore codebase, read files, search to answer
+- Only proceed when explicitly asked in future prompt
+
+# prep
+
+# prep
+
+Alias of `p` command.
+
+Planning/discussion session. Answer questions, summarize, recommend. **Do NOT implement.**
+
+## Behavior
+
+1. Answer thoroughly with complete info and recommendations
+2. Summarize current situation when relevant
+3. Provide recommendations with reasoning
+4. **Do NOT implement** - planning only
+5. For complex features, suggest using plan format (`.ai/workflows/plan_feature.md`)
+6. After each response, ask: "Proceed with implementing?"
+7. Wait for explicit confirmation
+
+## Notes
+
+- Discussion mode - no code changes, edits, or tool executions
+- May explore codebase, read files, search to answer
+- Only proceed when explicitly asked in future prompt
+
+# plan
+
+# plan
+
+Create and implement a feature plan using the plan document format `.ai/workflows/plan_feature.md` and using `.ai/templates/plan_feature.tmpl.md` as the starting template.
+
+# ci
+
+# ci
+
+Use GitHub CLI (`gh`) to check CI status, view failing runs, and examine build errors.
+
+## Behavior
+
+1. Use `gh` commands to check status and view failing runs
+2. Examine error messages
+3. Analyze to understand failures
+4. Diagnose and fix issues
+5. Provide guidance if needed
+
+## Commands
+
+- `gh run list` - Recent runs
+- `gh run view <run-id>` - Run details
+- `gh run view <run-id> --log` - Logs
+- `gh run list --status failure` - Failed runs only
+- `gh run watch` - Watch latest run
+
+## Workflow
+
+1. `gh run list` - Check recent runs
+2. Identify failures (❌ or failed status)
+3. `gh run view <run-id>` - View details
+4. `gh run view <run-id> --log` or `--log-failed` - Examine logs
+5. Analyze errors for root cause
+6. Fix locally or provide recommendations
+
+## Notes
+
+- Check most recent failing run first
+- Look for test/linting errors in logs
+- Compare with local `poetry run poe check:fix` if available
+- Examine full log if unclear
+- Check multiple failed runs if issue persists
+
+# c
+
+# commit
 

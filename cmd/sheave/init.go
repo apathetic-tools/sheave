@@ -128,6 +128,25 @@ var initCmd = &cobra.Command{
 		}
 
 		fmt.Printf("\nSuccessfully configured Sheave in %s\n", path)
+
+		synced := false
+		if len(includes) > 1 {
+			if askYesNo("\nDo you want to run 'sheave sync' now to apply these rules to your IDE?", true) {
+				fmt.Println() // Add a blank line for readability before sync output
+				err := syncCmd.RunE(cmd, args)
+				if err == nil {
+					synced = true
+				} else {
+					return err
+				}
+			}
+		}
+
+		if !synced {
+			fmt.Printf("\nTo get started, add rules to %s or create custom rules in your .ai/ directory.\n", path)
+			fmt.Println("When you are ready, run 'sheave sync' to apply them to your IDE.")
+		}
+
 		return nil
 	},
 }
