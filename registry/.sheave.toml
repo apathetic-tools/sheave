@@ -1,7 +1,9 @@
 active_providers = ["claude", "cursor", "gemini", "openai"]
 
+# https://code.claude.com/docs/en/settings
 [providers.claude]
 target_dir = ".claude"
+
 [providers.claude.rules]
 spread = "dir"
 path = "rules"
@@ -14,6 +16,22 @@ path = "skills"
 ext = "md"
 type = "md"
 
+# https://code.claude.com/docs/en/settings#subagent-configuration
+[providers.claude.agents]
+spread = "dir"
+path = "agents"
+ext = "md"
+type = "md"
+
+# https://code.claude.com/docs/en/mcp
+[providers.claude.mcp]
+spread = "file"
+path = "//.mcp.json"
+type = "json"
+flavor = "claude"
+
+# https://code.claude.com/docs/en/settings#settings-files
+# https://code.claude.com/docs/en/settings#plugin-configuration
 [providers.claude.settings]
 spread = "file"
 path = "settings.json"

@@ -23,7 +23,7 @@ func deployDataDriven(provider config.ProviderConfig, rules, commands []*registr
 	// 1. Process "rules" component
 	if provider.Rules != nil {
 		if provider.Rules.Spread == "dir" || provider.Rules.Spread == "subdir" {
-			rulesDir := filepath.Join(projectRoot, provider.TargetDir, provider.Rules.Path)
+			rulesDir := resolveDestPath(projectRoot, provider.TargetDir, provider.Rules.Path)
 			var changed bool
 			var err error
 
@@ -71,7 +71,7 @@ func deployDataDriven(provider config.ProviderConfig, rules, commands []*registr
 	// 2. Process "skills" component (maps to commands from registry)
 	if provider.Skills != nil {
 		if provider.Skills.Spread == "dir" || provider.Skills.Spread == "subdir" {
-			commandsDir := filepath.Join(projectRoot, provider.TargetDir, provider.Skills.Path)
+			commandsDir := resolveDestPath(projectRoot, provider.TargetDir, provider.Skills.Path)
 			var changed bool
 			var err error
 
@@ -126,7 +126,7 @@ func deployDataDriven(provider config.ProviderConfig, rules, commands []*registr
 
 	for name, comp := range simpleComponents {
 		if comp != nil && comp.Spread == "file" {
-			path := filepath.Join(projectRoot, provider.TargetDir, comp.Path)
+			path := resolveDestPath(projectRoot, provider.TargetDir, comp.Path)
 			// If it's just a stub, don't write it if it doesn't exist.
 			// Also don't overwrite it if it DOES exist (to preserve user's content).
 			// We only want to generate these components when we implement real generators.
@@ -188,7 +188,7 @@ func deployDataDriven(provider config.ProviderConfig, rules, commands []*registr
 			}
 		}
 
-		outputFile := filepath.Join(projectRoot, provider.TargetDir, provider.Main.Path)
+		outputFile := resolveDestPath(projectRoot, provider.TargetDir, provider.Main.Path)
 
 		if result.Len() > 0 {
 			changed, err := writeIfChanged(outputFile, []byte(result.String()), projectRoot, opts)
@@ -325,4 +325,11 @@ func generateItemContent(item *registry.Item, comp *config.ComponentConfig) ([]b
 	result.WriteString(body)
 
 	return []byte(result.String()), nil
+}
+
+func resolveDestPath(projectRoot, targetDir, compPath string) string {
+	if strings.HasPrefix(compPath, "//") {
+		return filepath.Join(projectRoot, strings.TrimPrefix(compPath, "//"))
+	}
+	return filepath.Join(projectRoot, targetDir, compPath)
 }
