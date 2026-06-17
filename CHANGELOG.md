@@ -1,3 +1,10 @@
+## [0.4.2](https://github.com/apathetic-tools/sheave/compare/v0.4.1...v0.4.2) (2026-06-17)
+
+
+### Bug Fixes
+
+* remove invalid github name template in goreleaser ([52c7dd7](https://github.com/apathetic-tools/sheave/commit/52c7dd7aa96f4fd62ba8808dd4212c80c99d0abb))
+
 ## [0.4.1](https://github.com/apathetic-tools/sheave/compare/v0.4.0...v0.4.1) (2026-06-17)
 
 
