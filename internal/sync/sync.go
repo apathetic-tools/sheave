@@ -73,18 +73,42 @@ func writeItems(items []*registry.Item, targetDir string, extension string, proj
 	}
 
 	for _, item := range items {
-		filename := item.BaseName
-		if item.Family != "" {
-			if spread == "subdir" {
-				filename = filepath.Join(item.Family, item.BaseName)
-			} else if spread == "dir" && idCounts[item.BaseName] > 1 {
-				parts := strings.Split(item.Family, "/")
-				lastDir := parts[len(parts)-1]
-				filename = lastDir + "-" + item.BaseName
+		filename := item.BaseName + extension
+		var dest string
+
+		if strings.HasPrefix(item.Family, "//") || strings.HasPrefix(item.Family, "/") {
+			familyPath := strings.TrimPrefix(item.Family, "//")
+			familyPath = strings.TrimPrefix(familyPath, "/")
+			dest = filepath.Join(projectRoot, familyPath, filename)
+		} else if item.IsFamilyOverridden {
+			dest = filepath.Join(targetDir, item.Family, filename)
+		} else {
+			if item.Family != "" {
+				if spread == "subdir" {
+					dest = filepath.Join(targetDir, item.Family, filename)
+				} else if spread == "dir" {
+					if idCounts[item.BaseName] > 1 {
+						parts := strings.Split(item.Family, "/")
+						lastDir := parts[len(parts)-1]
+						filename = lastDir + "-" + item.BaseName + extension
+					}
+					dest = filepath.Join(targetDir, filename)
+				} else {
+					dest = filepath.Join(targetDir, filename)
+				}
+			} else {
+				dest = filepath.Join(targetDir, filename)
 			}
 		}
-		filename += extension
-		dest := filepath.Join(targetDir, filename)
+
+		cleanDest := filepath.Clean(dest)
+		cleanRoot := filepath.Clean(projectRoot)
+
+		if !strings.HasPrefix(cleanDest, cleanRoot+string(filepath.Separator)) && cleanDest != cleanRoot {
+			return nil, false, fmt.Errorf("security violation: path %s escapes project root %s", cleanDest, cleanRoot)
+		}
+
+		dest = cleanDest
 		created[dest] = true
 
 		changed, err := writeIfChanged(dest, item.Content, projectRoot, opts)

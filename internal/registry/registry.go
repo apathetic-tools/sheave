@@ -14,40 +14,42 @@ import (
 
 // Item represents a single AI guidance item (Command, Rule, Template, or Workflow)
 type Item struct {
-	ID          string
-	BaseName    string
-	Family      string
-	Name        string
-	Type        string // "Command", "Rule", "Template", "Workflow"
-	Category    string
-	Description string
-	Builtin     bool
-	Content     []byte
+	ID                 string
+	BaseName           string
+	Family             string
+	IsFamilyOverridden bool
+	Name               string
+	Type               string // "Command", "Rule", "Template", "Workflow"
+	Category           string
+	Description        string
+	Builtin            bool
+	Content            []byte
 }
 
 type frontmatter struct {
 	ID     string `yaml:"sheave-id"`
 	Family string `yaml:"sheave-family"`
+	Name   string `yaml:"sheave-name"`
 }
 
-func parseFrontmatter(content []byte) (string, string) {
+func parseFrontmatter(content []byte) (string, string, string) {
 	str := string(content)
 	if !strings.HasPrefix(str, "---\n") && !strings.HasPrefix(str, "---\r\n") {
-		return "", ""
+		return "", "", ""
 	}
 
 	start := strings.Index(str, "\n") + 1
 	end := strings.Index(str[start:], "\n---")
 	if end == -1 {
-		return "", ""
+		return "", "", ""
 	}
 	end += start
 
 	var fm frontmatter
 	if err := yaml.Unmarshal([]byte(str[start:end]), &fm); err != nil {
-		return "", ""
+		return "", "", ""
 	}
-	return fm.ID, fm.Family
+	return fm.ID, fm.Family, fm.Name
 }
 
 // Registry stores available items
@@ -110,15 +112,20 @@ func (r *Registry) registerBuiltins() {
 				id = baseName
 			}
 
+			var isFamilyOverridden bool
 			var content []byte
 			if b, err := fs.ReadFile(sheaveregistry.FS, path); err == nil {
 				content = b
-				fmID, fmFamily := parseFrontmatter(b)
+				fmID, fmFamily, fmName := parseFrontmatter(b)
 				if fmID != "" {
 					id = fmID
 				}
 				if fmFamily != "" {
 					family = fmFamily
+					isFamilyOverridden = true
+				}
+				if fmName != "" {
+					baseName = fmName
 				}
 			}
 
@@ -134,15 +141,16 @@ func (r *Registry) registerBuiltins() {
 				humanName := strings.ReplaceAll(id, "_", " ")
 
 				r.AddBuiltin(&Item{
-					ID:          id,
-					BaseName:    baseName,
-					Family:      family,
-					Name:        humanName,
-					Type:        itemType,
-					Category:    "Builtin",
-					Description: "Built-in " + itemType,
-					Builtin:     true,
-					Content:     content,
+					ID:                 id,
+					BaseName:           baseName,
+					Family:             family,
+					IsFamilyOverridden: isFamilyOverridden,
+					Name:               humanName,
+					Type:               itemType,
+					Category:           "Builtin",
+					Description:        "Built-in " + itemType,
+					Builtin:            true,
+					Content:            content,
 				})
 			}
 		}
@@ -237,30 +245,36 @@ func (r *Registry) DiscoverCustomItems(workspaceRoot string) error {
 					id = baseName
 				}
 
+				var isFamilyOverridden bool
 				var content []byte
 				if b, err := os.ReadFile(path); err == nil {
 					content = b
-					fmID, fmFamily := parseFrontmatter(b)
+					fmID, fmFamily, fmName := parseFrontmatter(b)
 					if fmID != "" {
 						id = fmID
 					}
 					if fmFamily != "" {
 						family = fmFamily
+						isFamilyOverridden = true
+					}
+					if fmName != "" {
+						baseName = fmName
 					}
 				}
 
 				humanName := strings.ReplaceAll(id, "_", " ")
 
 				r.AddCustom(&Item{
-					ID:          id,
-					BaseName:    baseName,
-					Family:      family,
-					Name:        humanName,
-					Type:        itemType,
-					Category:    "Custom",
-					Description: "Custom " + itemType + " from " + dir,
-					Builtin:     false,
-					Content:     content,
+					ID:                 id,
+					BaseName:           baseName,
+					Family:             family,
+					IsFamilyOverridden: isFamilyOverridden,
+					Name:               humanName,
+					Type:               itemType,
+					Category:           "Custom",
+					Description:        "Custom " + itemType + " from " + dir,
+					Builtin:            false,
+					Content:            content,
 				})
 			}
 			return nil

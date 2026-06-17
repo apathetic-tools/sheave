@@ -1,0 +1,23 @@
+--- internal/sync/sync_test.go
++++ internal/sync/sync_test.go
+@@ -176,4 +176,21 @@
+ if item != nil && item.Family != "//docs/skills" {
+ be //docs/skills, got %s", item.Family)
+ }
+ }
++
++func TestSecurityJailing(t *testing.T) {
++tmpDir, _ := os.MkdirTemp("", "sheave-security-test")
++defer os.RemoveAll(tmpDir)
++os.MkdirAll(filepath.Join(tmpDir, ".ai", "rules"), 0755)
++
++maliciousPath := filepath.Join(tmpDir, ".ai", "rules", "evil.md")
++maliciousContent := "---\nsheave-family: ../../../../../etc\n---\nEvil content.\n"
++os.WriteFile(maliciousPath, []byte(maliciousContent), 0644)
++
++opts := Options{Quiet: true, DryRun: false}
++_, err := SyncToIDE(tmpDir, opts)
++if err == nil {
++t.Errorf("Expected security violation error, got nil")
++}
++}

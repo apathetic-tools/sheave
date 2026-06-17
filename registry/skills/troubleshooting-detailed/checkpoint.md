@@ -1,5 +1,5 @@
 ---
-sheave-id: checkpoint
+sheave-name: cp
 ---
 # checkpoint
 

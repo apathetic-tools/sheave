@@ -1,6 +1,5 @@
 ---
-sheave-id: ci
-sheave-family: troubleshooting
+sheave-name: ci
 ---
 # ci
 
