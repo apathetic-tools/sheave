@@ -1,3 +1,10 @@
+# [0.6.0](https://github.com/apathetic-tools/sheave/compare/v0.5.0...v0.6.0) (2026-06-17)
+
+
+### Features
+
+* **skills:** add new instruct and troubleshooting skills ([f9475ca](https://github.com/apathetic-tools/sheave/commit/f9475ca5c48be2d8d4a737a7b2c18eb52b343ae9))
+
 # [0.5.0](https://github.com/apathetic-tools/sheave/compare/v0.4.3...v0.5.0) (2026-06-17)
 
 
