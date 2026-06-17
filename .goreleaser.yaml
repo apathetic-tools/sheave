@@ -13,7 +13,5 @@ builds:
       - arm64
 
 release:
-  github:
-    owner: "{{ .Env.GITHUB_REPOSITORY_OWNER }}"
-    name: "{{ .Env.GITHUB_REPOSITORY_NAME }}"
+
   name_template: '{{.Tag}}'
