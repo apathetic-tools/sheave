@@ -1,3 +1,10 @@
+# [0.5.0](https://github.com/apathetic-tools/sheave/compare/v0.4.3...v0.5.0) (2026-06-17)
+
+
+### Features
+
+* implement POSIX path traversal and security jailing for sheave-family ([54234c8](https://github.com/apathetic-tools/sheave/commit/54234c839a6eaab86800f131af67b0e04c20a54c))
+
 ## [0.4.3](https://github.com/apathetic-tools/sheave/compare/v0.4.2...v0.4.3) (2026-06-17)
 
 
