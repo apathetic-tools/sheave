@@ -1,3 +1,10 @@
+## [0.4.3](https://github.com/apathetic-tools/sheave/compare/v0.4.2...v0.4.3) (2026-06-17)
+
+
+### Bug Fixes
+
+* specify main package path for goreleaser ([5a97a29](https://github.com/apathetic-tools/sheave/commit/5a97a29e9bee512adf8d5149037139f02174f8b0))
+
 ## [0.4.2](https://github.com/apathetic-tools/sheave/compare/v0.4.1...v0.4.2) (2026-06-17)
 
 
