@@ -1,3 +1,10 @@
+## [0.4.1](https://github.com/apathetic-tools/sheave/compare/v0.4.0...v0.4.1) (2026-06-17)
+
+
+### Bug Fixes
+
+* pass release-notes via CLI argument instead of yaml ([278e93c](https://github.com/apathetic-tools/sheave/commit/278e93c04ae8778fa089bd60e1ee2b89e617e376))
+
 # [0.4.0](https://github.com/apathetic-tools/sheave/compare/v0.3.0...v0.4.0) (2026-06-17)
 
 
