@@ -4,6 +4,7 @@ project_name: sheave
 builds:
   - env:
       - CGO_ENABLED=0
+    main: ./cmd/sheave
     goos:
       - linux
       - windows
