@@ -16,3 +16,7 @@ lint = "golangci-lint run"
 
 [tasks.ci]
 depends = ["lint", "test", "build"]
+
+[tasks.start]
+depends = ["build"]
+run = "./bin/sheave"

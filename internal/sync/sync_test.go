@@ -102,7 +102,7 @@ Cursor specific content.
 		t.Errorf("deep_command_renamed.md was not copied to .claude/skills")
 	}
 
-	// We no longer generate empty stub files, so settings.json should not exist
+	// Since no settings are configured in the test TOML, settings.json should not exist
 	settingsFile := filepath.Join(tmpDir, ".claude", "settings.json")
 	if _, err := os.Stat(settingsFile); !os.IsNotExist(err) {
 		t.Errorf("settings.json was incorrectly generated in .claude")

@@ -1,0 +1,13 @@
+{
+	"commands-allowed": [
+		"git branch:*",
+		"git diff:*",
+		"git diff:*",
+		"git fetch:*",
+		"git log:*",
+		"git pull:*",
+		"git show:*",
+		"git stash:*",
+		"git status:*"
+	]
+}

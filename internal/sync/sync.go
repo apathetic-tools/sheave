@@ -32,6 +32,7 @@ func SyncToIDE(projectRoot string, opts Options) (bool, error) {
 
 	activeRules := reg.Resolve("Rule", cfg.Rules.Include, cfg.Rules.Exclude)
 	activeCommands := reg.Resolve("Skill", cfg.Skills.Include, cfg.Skills.Exclude)
+	activeSettings := reg.Resolve("Setting", cfg.Settings.Include, cfg.Settings.Exclude)
 
 	hadChanges := false
 
@@ -47,7 +48,7 @@ func SyncToIDE(projectRoot string, opts Options) (bool, error) {
 		var changed bool
 		var err error
 
-		changed, err = deployDataDriven(provider, activeRules, activeCommands, projectRoot, opts)
+		changed, err = deployDataDriven(provider, activeRules, activeCommands, activeSettings, projectRoot, opts)
 
 		if err != nil {
 			return false, fmt.Errorf("failed to sync provider %s: %w", name, err)
@@ -56,7 +57,7 @@ func SyncToIDE(projectRoot string, opts Options) (bool, error) {
 	}
 
 	if !hadChanges && !opts.Quiet {
-		fmt.Println("No changes to make")
+		fmt.Println("No changes detected.")
 	}
 	return hadChanges, nil
 }

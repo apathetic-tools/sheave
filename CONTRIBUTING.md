@@ -23,16 +23,39 @@ You will see `.ai/` folders and `.sheave.toml` files at the root of this reposit
 
 Sheave requires **Go 1.21+**.
 
+We use `mise` as an optional task runner and environment manager. If you have `mise` installed, you can use the predefined tasks. Otherwise, standard `go` commands work just fine.
+
 ### 1️⃣ Build the Project
 
 ```bash
-go build ./...
+# With mise
+mise run build
+
+# With standard go
+go build -o bin/sheave ./cmd/sheave
 ```
 
-### 2️⃣ Run Tests
+### 3️⃣ Run the CLI
 
 ```bash
+# With mise (builds and runs)
+mise run start
+
+# With standard go
+go run ./cmd/sheave
+```
+
+### 4️⃣ Run Tests & Linting
+
+```bash
+# With mise
+mise run test
+mise run lint
+mise run ci   # Runs lint, test, and build
+
+# With standard go
 go test ./...
+golangci-lint run
 ```
 
 ---

@@ -1,6 +1,7 @@
 package sync
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -10,15 +11,27 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/apathetic-tools/sheave/internal/config"
+	"github.com/apathetic-tools/sheave/internal/providers"
 	"github.com/apathetic-tools/sheave/internal/registry"
 )
 
-func deployDataDriven(provider config.ProviderConfig, rules, commands []*registry.Item, projectRoot string, opts Options) (bool, error) {
+func deployDataDriven(provider config.ProviderConfig, rules, commands, settingsItems []*registry.Item, projectRoot string, opts Options) (bool, error) {
 	hadChanges := false
 
 	var unhandledRules, unhandledCommands []*registry.Item
 	createdRules := make(map[string]bool)
 	createdCommands := make(map[string]bool)
+
+	mergedSettings := make(map[string]any)
+	for _, item := range settingsItems {
+		var s map[string]any
+		// Using yaml.Unmarshal because it parses standard JSON nicely too
+		if err := yaml.Unmarshal(item.Content, &s); err == nil {
+			for k, v := range s {
+				mergedSettings[k] = v
+			}
+		}
+	}
 
 	// 1. Process "rules" component
 	if provider.Rules != nil {
@@ -127,6 +140,48 @@ func deployDataDriven(provider config.ProviderConfig, rules, commands []*registr
 	for name, comp := range simpleComponents {
 		if comp != nil && comp.Spread == "file" {
 			path := resolveDestPath(projectRoot, provider.TargetDir, comp.Path)
+
+			if name == "settings" {
+				flavorStr := ""
+				if comp.Flavor != nil {
+					flavorStr = fmt.Sprintf("%v", comp.Flavor)
+				} else if comp.Flavour != nil {
+					flavorStr = fmt.Sprintf("%v", comp.Flavour)
+				}
+
+				adapter := providers.GetAdapter(flavorStr)
+				mappedSettings, err := adapter.TranslateSettings(mergedSettings)
+				if err != nil {
+					return false, fmt.Errorf("failed to translate settings: %w", err)
+				}
+
+				if len(mappedSettings) > 0 {
+					var existing map[string]any
+					if _, err := os.Stat(path); err == nil {
+						if content, err := os.ReadFile(path); err == nil {
+							_ = json.Unmarshal(content, &existing)
+						}
+					}
+					if existing == nil {
+						existing = make(map[string]any)
+					}
+
+					for k, v := range mappedSettings {
+						existing[k] = v
+					}
+
+					outBytes, err := json.MarshalIndent(existing, "", "  ")
+					if err == nil {
+						changed, err := writeIfChanged(path, outBytes, projectRoot, opts)
+						if err != nil {
+							return false, err
+						}
+						hadChanges = hadChanges || changed
+					}
+				}
+				continue
+			}
+
 			// If it's just a stub, don't write it if it doesn't exist.
 			// Also don't overwrite it if it DOES exist (to preserve user's content).
 			// We only want to generate these components when we implement real generators.

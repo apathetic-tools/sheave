@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"sort"
 	"strings"
 )
 
@@ -43,6 +44,14 @@ func (r *Registry) Resolve(itemType string, includes, excludes []string) []*Item
 	for _, item := range active {
 		result = append(result, item)
 	}
+
+	sort.Slice(result, func(i, j int) bool {
+		if result[i].Family != result[j].Family {
+			return result[i].Family < result[j].Family
+		}
+		return result[i].ID < result[j].ID
+	})
+
 	return result
 }
 

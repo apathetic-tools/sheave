@@ -1,16 +1,14 @@
 [rules]
-include = ['~*']
+include = ["~*"]
+
+[settings]
+include = ["~*", "#maximum-privacy/*", "#read-only/*"]
 
 [skills]
-include = [
-  '~*',
-  '#troubleshooting/*',
-  '#aliases/*',
-  '#design/*'
-]
+include = ["~*", "#troubleshooting/*", "#aliases/*", "#design/*"]
 
 [templates]
-include = ['~*']
+include = ["~*"]
 
 [workflows]
-include = ['~*']
+include = ["~*"]

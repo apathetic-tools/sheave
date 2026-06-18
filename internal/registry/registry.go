@@ -76,7 +76,7 @@ func (r *Registry) registerBuiltins() {
 
 		name := d.Name()
 		ext := filepath.Ext(name)
-		if strings.HasPrefix(ext, ".md") {
+		if strings.HasPrefix(ext, ".md") || strings.HasPrefix(ext, ".json") {
 			// Compute ID as the path relative to the root "."
 			// e.g. path="rules/frontend/react.md" -> "rules/frontend/react"
 			relPath := strings.TrimSuffix(path, ext)
@@ -95,6 +95,8 @@ func (r *Registry) registerBuiltins() {
 				itemType = "Template"
 			case "workflows":
 				itemType = "Workflow"
+			case "settings":
+				itemType = "Setting"
 			default:
 				return nil
 			}
@@ -215,6 +217,7 @@ func (r *Registry) DiscoverCustomItems(workspaceRoot string) error {
 		filepath.Join(workspaceRoot, ".ai", "skills"):    "Skill",
 		filepath.Join(workspaceRoot, ".ai", "templates"): "Template",
 		filepath.Join(workspaceRoot, ".ai", "workflows"): "Workflow",
+		filepath.Join(workspaceRoot, ".ai", "settings"):  "Setting",
 	}
 
 	for dir, itemType := range dirs {
@@ -229,7 +232,7 @@ func (r *Registry) DiscoverCustomItems(workspaceRoot string) error {
 
 			name := d.Name()
 			ext := filepath.Ext(name)
-			if strings.HasPrefix(ext, ".md") {
+			if strings.HasPrefix(ext, ".md") || strings.HasPrefix(ext, ".json") {
 				relPath, _ := filepath.Rel(dir, path)
 				parts := strings.Split(filepath.ToSlash(relPath), "/")
 				id := filepath.ToSlash(strings.TrimSuffix(relPath, ext))
