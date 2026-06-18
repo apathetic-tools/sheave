@@ -15,7 +15,7 @@ import (
 	"github.com/apathetic-tools/sheave/internal/registry"
 )
 
-func deployDataDriven(provider config.ProviderConfig, rules, commands, settingsItems []*registry.Item, projectRoot string, opts Options) (bool, error) {
+func deployDataDriven(providerName string, layout providers.ProviderLayout, rules, commands, settingsItems []*registry.Item, projectRoot string, opts Options) (bool, error) {
 	hadChanges := false
 
 	var unhandledRules, unhandledCommands []*registry.Item
@@ -34,14 +34,14 @@ func deployDataDriven(provider config.ProviderConfig, rules, commands, settingsI
 	}
 
 	// 1. Process "rules" component
-	if provider.Rules != nil {
-		if provider.Rules.Spread == "dir" || provider.Rules.Spread == "subdir" {
-			rulesDir := resolveDestPath(projectRoot, provider.TargetDir, provider.Rules.Path)
+	if layout.Components["rules"] != nil {
+		if layout.Components["rules"].Spread == "dir" || layout.Components["rules"].Spread == "subdir" {
+			rulesDir := resolveDestPath(projectRoot, layout.TargetDir, layout.Components["rules"].Path)
 			var changed bool
 			var err error
 
 			// Use the extension specified in config, ensuring it starts with a dot
-			ext := provider.Rules.Ext
+			ext := layout.Components["rules"].Ext
 			if ext != "" && !strings.HasPrefix(ext, ".") {
 				ext = "." + ext
 			}
@@ -49,7 +49,7 @@ func deployDataDriven(provider config.ProviderConfig, rules, commands, settingsI
 			var generatedRules []*registry.Item
 			for _, item := range rules {
 				newItem := *item
-				content, err := generateItemContent(item, provider.Rules)
+				content, err := generateItemContent(item, layout.Components["rules"])
 				if err != nil {
 					return false, err
 				}
@@ -57,7 +57,7 @@ func deployDataDriven(provider config.ProviderConfig, rules, commands, settingsI
 				generatedRules = append(generatedRules, &newItem)
 			}
 
-			createdRules, changed, err = writeItems(generatedRules, rulesDir, ext, projectRoot, provider.Rules.Spread, opts)
+			createdRules, changed, err = writeItems(generatedRules, rulesDir, ext, projectRoot, layout.Components["rules"].Spread, opts)
 			if err != nil {
 				return false, err
 			}
@@ -82,13 +82,13 @@ func deployDataDriven(provider config.ProviderConfig, rules, commands, settingsI
 	}
 
 	// 2. Process "skills" component (maps to commands from registry)
-	if provider.Skills != nil {
-		if provider.Skills.Spread == "dir" || provider.Skills.Spread == "subdir" {
-			commandsDir := resolveDestPath(projectRoot, provider.TargetDir, provider.Skills.Path)
+	if layout.Components["skills"] != nil {
+		if layout.Components["skills"].Spread == "dir" || layout.Components["skills"].Spread == "subdir" {
+			commandsDir := resolveDestPath(projectRoot, layout.TargetDir, layout.Components["skills"].Path)
 			var changed bool
 			var err error
 
-			ext := provider.Skills.Ext
+			ext := layout.Components["skills"].Ext
 			if ext != "" && !strings.HasPrefix(ext, ".") {
 				ext = "." + ext
 			}
@@ -96,7 +96,7 @@ func deployDataDriven(provider config.ProviderConfig, rules, commands, settingsI
 			var generatedCommands []*registry.Item
 			for _, item := range commands {
 				newItem := *item
-				content, err := generateItemContent(item, provider.Skills)
+				content, err := generateItemContent(item, layout.Components["skills"])
 				if err != nil {
 					return false, err
 				}
@@ -104,7 +104,7 @@ func deployDataDriven(provider config.ProviderConfig, rules, commands, settingsI
 				generatedCommands = append(generatedCommands, &newItem)
 			}
 
-			createdCommands, changed, err = writeItems(generatedCommands, commandsDir, ext, projectRoot, provider.Skills.Spread, opts)
+			createdCommands, changed, err = writeItems(generatedCommands, commandsDir, ext, projectRoot, layout.Components["skills"].Spread, opts)
 			if err != nil {
 				return false, err
 			}
@@ -129,17 +129,17 @@ func deployDataDriven(provider config.ProviderConfig, rules, commands, settingsI
 
 	// 3. Stub other simple components
 	simpleComponents := map[string]*config.ComponentConfig{
-		"settings":    provider.Settings,
-		"hooks":       provider.Hooks,
-		"mcp":         provider.MCP,
-		"environment": provider.Environment,
-		"ide":         provider.IDE,
-		"ignore":      provider.Ignore,
+		"settings":    layout.Components["settings"],
+		"hooks":       layout.Components["hooks"],
+		"mcp":         layout.Components["mcp"],
+		"environment": layout.Components["environment"],
+		"ide":         layout.Components["ide"],
+		"ignore":      layout.Components["ignore"],
 	}
 
 	for name, comp := range simpleComponents {
 		if comp != nil && comp.Spread == "file" {
-			path := resolveDestPath(projectRoot, provider.TargetDir, comp.Path)
+			path := resolveDestPath(projectRoot, layout.TargetDir, comp.Path)
 
 			if name == "settings" {
 				flavorStr := ""
@@ -197,9 +197,9 @@ func deployDataDriven(provider config.ProviderConfig, rules, commands, settingsI
 	}
 
 	// 4. Process "main" component (catchall/memory)
-	if provider.Main != nil {
-		hasCatchall := hasFlavour(provider.Main, "catchall")
-		hasMemory := hasFlavour(provider.Main, "memory")
+	if layout.Components["main"] != nil {
+		hasCatchall := hasFlavour(layout.Components["main"], "catchall")
+		hasMemory := hasFlavour(layout.Components["main"], "memory")
 
 		var result strings.Builder
 
@@ -228,7 +228,7 @@ func deployDataDriven(provider config.ProviderConfig, rules, commands, settingsI
 			for _, path := range rulePaths {
 				stat, err := os.Stat(path)
 				if err == nil {
-					rel, _ := filepath.Rel(filepath.Join(projectRoot, provider.TargetDir), path)
+					rel, _ := filepath.Rel(filepath.Join(projectRoot, layout.TargetDir), path)
 					result.WriteString(fmt.Sprintf("- [%s] **Rule**: `%s`\n", stat.ModTime().Format("2006-01-02T15:04:05Z"), rel))
 				}
 			}
@@ -237,13 +237,13 @@ func deployDataDriven(provider config.ProviderConfig, rules, commands, settingsI
 			for _, path := range commandPaths {
 				stat, err := os.Stat(path)
 				if err == nil {
-					rel, _ := filepath.Rel(filepath.Join(projectRoot, provider.TargetDir), path)
+					rel, _ := filepath.Rel(filepath.Join(projectRoot, layout.TargetDir), path)
 					result.WriteString(fmt.Sprintf("- [%s] **Command**: `%s`\n", stat.ModTime().Format("2006-01-02T15:04:05Z"), rel))
 				}
 			}
 		}
 
-		outputFile := resolveDestPath(projectRoot, provider.TargetDir, provider.Main.Path)
+		outputFile := resolveDestPath(projectRoot, layout.TargetDir, layout.Components["main"].Path)
 
 		if result.Len() > 0 {
 			changed, err := writeIfChanged(outputFile, []byte(result.String()), projectRoot, opts)

@@ -3,6 +3,7 @@ package sync
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/apathetic-tools/sheave/internal/registry"
@@ -102,10 +103,18 @@ Cursor specific content.
 		t.Errorf("deep_command_renamed.md was not copied to .claude/skills")
 	}
 
-	// Since no settings are configured in the test TOML, settings.json should not exist
+	// settings.json should be generated with at least the $schema key
 	settingsFile := filepath.Join(tmpDir, ".claude", "settings.json")
-	if _, err := os.Stat(settingsFile); !os.IsNotExist(err) {
-		t.Errorf("settings.json was incorrectly generated in .claude")
+	if _, err := os.Stat(settingsFile); os.IsNotExist(err) {
+		t.Errorf("settings.json was not generated in .claude")
+	} else {
+		content, err := os.ReadFile(settingsFile)
+		if err != nil {
+			t.Errorf("failed to read settings.json: %v", err)
+		}
+		if !strings.Contains(string(content), `"$schema"`) {
+			t.Errorf("settings.json does not contain $schema. Content: %s", string(content))
+		}
 	}
 
 	// We no longer generate empty catchall files if they don't exist
@@ -140,16 +149,10 @@ func TestFrontmatterOverrides(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Create a custom config that only runs ONE provider to avoid ping-ponging the absolute path
+	// Use a single known provider so sheave-family overrides can be tested without
+	// provider layouts needing to be config-defined (adapters are now hardcoded).
 	configContent := `
-active_providers = ["test_provider"]
-[providers.test_provider]
-target_dir = ".test_provider"
-[providers.test_provider.skills]
-path = "skills"
-spread = "dir"
-length = 1
-ext = ".md"
+active_providers = ["claude"]
 `
 	if err := os.WriteFile(filepath.Join(tmpDir, ".ai", ".sheave.toml"), []byte(configContent), 0644); err != nil {
 		t.Fatal(err)

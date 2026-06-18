@@ -37,29 +37,14 @@ type ComponentConfig struct {
 	Metadata    *FieldProp `toml:"metadata,omitempty"`
 }
 
-// ProviderConfig represents a deployment target for AI
-type ProviderConfig struct {
-	TargetDir   string           `toml:"target_dir"`
-	Rules       *ComponentConfig `toml:"rules,omitempty"`
-	Skills      *ComponentConfig `toml:"skills,omitempty"`
-	Settings    *ComponentConfig `toml:"settings,omitempty"`
-	Main        *ComponentConfig `toml:"main,omitempty"`
-	Hooks       *ComponentConfig `toml:"hooks,omitempty"`
-	MCP         *ComponentConfig `toml:"mcp,omitempty"`
-	Environment *ComponentConfig `toml:"environment,omitempty"`
-	IDE         *ComponentConfig `toml:"ide,omitempty"`
-	Ignore      *ComponentConfig `toml:"ignore,omitempty"`
-}
-
 // Config represents the schema of .sheave.toml
 type Config struct {
-	ActiveProviders []string                  `toml:"active_providers,omitempty"`
-	Rules           Selection                 `toml:"rules,omitempty"`
-	Settings        Selection                 `toml:"settings,omitempty"`
-	Skills          Selection                 `toml:"skills,omitempty"`
-	Templates       Selection                 `toml:"templates,omitempty"`
-	Workflows       Selection                 `toml:"workflows,omitempty"`
-	Providers       map[string]ProviderConfig `toml:"providers,omitempty"`
+	ActiveProviders []string  `toml:"active_providers,omitempty"`
+	Rules           Selection `toml:"rules,omitempty"`
+	Settings        Selection `toml:"settings,omitempty"`
+	Skills          Selection `toml:"skills,omitempty"`
+	Templates       Selection `toml:"templates,omitempty"`
+	Workflows       Selection `toml:"workflows,omitempty"`
 }
 
 // GetConfigPath returns the path to the configuration file.
@@ -141,13 +126,6 @@ func Load(path string) (*Config, error) {
 	}
 	if len(userCfg.Settings.Exclude) > 0 {
 		baseCfg.Settings.Exclude = userCfg.Settings.Exclude
-	}
-
-	if baseCfg.Providers == nil && len(userCfg.Providers) > 0 {
-		baseCfg.Providers = make(map[string]ProviderConfig)
-	}
-	for k, v := range userCfg.Providers {
-		baseCfg.Providers[k] = v
 	}
 
 	return &baseCfg, nil

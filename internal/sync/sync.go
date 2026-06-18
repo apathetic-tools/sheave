@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/apathetic-tools/sheave/internal/config"
+	"github.com/apathetic-tools/sheave/internal/providers"
 	"github.com/apathetic-tools/sheave/internal/registry"
 )
 
@@ -37,18 +38,13 @@ func SyncToIDE(projectRoot string, opts Options) (bool, error) {
 	hadChanges := false
 
 	for _, name := range cfg.ActiveProviders {
-		provider, ok := cfg.Providers[name]
-		if !ok {
-			if !opts.Quiet {
-				fmt.Printf("Warning: active_provider '%s' not found in providers map\n", name)
-			}
-			continue
-		}
+		adapter := providers.GetAdapter(name)
+		layout := adapter.GetLayout()
 
 		var changed bool
 		var err error
 
-		changed, err = deployDataDriven(provider, activeRules, activeCommands, activeSettings, projectRoot, opts)
+		changed, err = deployDataDriven(name, layout, activeRules, activeCommands, activeSettings, projectRoot, opts)
 
 		if err != nil {
 			return false, fmt.Errorf("failed to sync provider %s: %w", name, err)
