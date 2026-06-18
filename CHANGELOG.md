@@ -1,3 +1,10 @@
+## [0.6.1](https://github.com/apathetic-tools/sheave/compare/v0.6.0...v0.6.1) (2026-06-18)
+
+
+### Bug Fixes
+
+* deterministic registry resolution and settings sync ([987139b](https://github.com/apathetic-tools/sheave/commit/987139b626615aed39feccac9fe0aa954abed984))
+
 # [0.6.0](https://github.com/apathetic-tools/sheave/compare/v0.5.0...v0.6.0) (2026-06-17)
 
 
