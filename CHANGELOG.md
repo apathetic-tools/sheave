@@ -1,3 +1,10 @@
+# [0.7.0](https://github.com/apathetic-tools/sheave/compare/v0.6.1...v0.7.0) (2026-06-18)
+
+
+### Features
+
+* replace commands-allowed with shell-allow/skill-allow permission keys ([55522b0](https://github.com/apathetic-tools/sheave/commit/55522b0d118c92fbc2c468110c5398d13fb4f6b0))
+
 ## [0.6.1](https://github.com/apathetic-tools/sheave/compare/v0.6.0...v0.6.1) (2026-06-18)
 
 
