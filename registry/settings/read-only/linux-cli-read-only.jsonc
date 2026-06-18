@@ -1,0 +1,11 @@
+// registry/settings/read-only/linux-cli-read-only.jsonc (jsonc)
+
+{
+	"shell-allow": [
+		"cat:*",
+		"cd:*",
+		"find:*",
+		"grep:*",
+		"ls:*"
+	]
+}

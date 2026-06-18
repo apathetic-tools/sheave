@@ -1,0 +1,12 @@
+// registry/settings/read-only/github-read-only.jsonc (jsonc)
+
+{
+	"shell-allow": [
+		"gh pr checks:*",
+		"gh pr comment:*",
+		"gh pr view:*",
+		"gh release:*",
+		"gh run list:*",
+		"gh run view:*"
+	]
+}

@@ -1,0 +1,10 @@
+// registry/settings/safeish/python-safeish.jsonc (jsonc)
+
+{
+	"shell-allow": [
+		"poetry:*",
+		"pytest:*",
+		"mypy:*",
+		"ruff:*"
+	]
+}

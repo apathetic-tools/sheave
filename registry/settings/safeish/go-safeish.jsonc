@@ -1,0 +1,7 @@
+// registry/settings/safeish/go-safeish.jsonc (jsonc)
+
+{
+	"shell-allow": [
+		"go build:*"
+	]
+}

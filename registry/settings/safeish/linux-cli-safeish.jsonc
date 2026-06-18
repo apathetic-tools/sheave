@@ -1,0 +1,10 @@
+// registry/settings/safeish/linux-cli-safeish.jsonc (jsonc)
+
+{
+	"shell-allow": [
+		"chmod:*",
+    "cut:*",
+		"mkdir:*",
+    "mv:*"
+	]
+}

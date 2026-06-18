@@ -61,37 +61,46 @@ func (c *ClaudeAdapter) TranslateSettings(settings map[string]any) (map[string]a
 	result := make(map[string]any)
 	result["$schema"] = "https://json.schemastore.org/claude-code-settings.json"
 
-	// Translate co-author-by-ai
 	if val, ok := settings["co-author-by-ai"]; ok {
-		// Claude expects "includeCoAuthoredBy" (boolean)
 		if b, isBool := val.(bool); isBool {
 			result["includeCoAuthoredBy"] = b
 		}
 	}
 
-	// Translate commands-allowed
-	if val, ok := settings["commands-allowed"]; ok {
-		var allowedCommands []string
-
-		switch v := val.(type) {
-		case []any:
-			for _, cmd := range v {
-				if s, isStr := cmd.(string); isStr {
-					allowedCommands = append(allowedCommands, fmt.Sprintf("Bash(%s)", s))
-				}
-			}
-		case []string:
-			for _, s := range v {
-				allowedCommands = append(allowedCommands, fmt.Sprintf("Bash(%s)", s))
+	permissions := make(map[string]any)
+	for _, section := range []string{"allow", "deny", "ask"} {
+		var entries []string
+		if val, ok := settings["shell-"+section]; ok {
+			for _, s := range toStringSlice(val) {
+				entries = append(entries, fmt.Sprintf("Bash(%s)", s))
 			}
 		}
-
-		if len(allowedCommands) > 0 {
-			result["permissions"] = map[string]any{
-				"allow": allowedCommands,
-			}
+		if val, ok := settings["skill-"+section]; ok {
+			entries = append(entries, toStringSlice(val)...)
 		}
+		if len(entries) > 0 {
+			permissions[section] = entries
+		}
+	}
+	if len(permissions) > 0 {
+		result["permissions"] = permissions
 	}
 
 	return result, nil
+}
+
+func toStringSlice(val any) []string {
+	switch v := val.(type) {
+	case []any:
+		var out []string
+		for _, item := range v {
+			if s, ok := item.(string); ok {
+				out = append(out, s)
+			}
+		}
+		return out
+	case []string:
+		return v
+	}
+	return nil
 }

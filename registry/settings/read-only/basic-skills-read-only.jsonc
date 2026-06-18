@@ -1,0 +1,11 @@
+// registry/settings/read-only/basic-skills-read-only.jsonc (jsonc)
+
+{
+	"skill-allow": [
+		"Grep",
+		"Read",
+		"Task",
+		"WebFetch",
+		"WebSearch"
+	]
+}

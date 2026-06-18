@@ -1,0 +1,7 @@
+// registry/settings/safeish/basic-skills-safeish.jsonc (jsonc)
+
+{
+	"skill-allow": [
+		"Edit"
+	]
+}

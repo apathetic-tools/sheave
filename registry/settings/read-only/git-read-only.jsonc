@@ -1,7 +1,8 @@
+// registry/settings/read-only/git-read-only.jsonc (jsonc)
+
 {
-	"commands-allowed": [
+	"shell-allow": [
 		"git branch:*",
-		"git diff:*",
 		"git diff:*",
 		"git fetch:*",
 		"git log:*",

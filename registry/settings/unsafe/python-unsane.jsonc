@@ -1,0 +1,8 @@
+// registry/settings/unsafe/python-unsane.jsonc (jsonc)
+
+{
+	"shell-allow": [
+		"python:*",
+		"python3:*"
+	]
+}
